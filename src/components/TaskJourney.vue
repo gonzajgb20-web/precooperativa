@@ -18,7 +18,7 @@
       >
         <div class="step-top">
           <div class="step-number-circle">
-            <span class="step-icon">{{ step.icon }}</span>
+            <AppIcon :name="step.icon" :size="18" color="#ea580c" />
           </div>
           <span class="step-tag">Paso {{ index + 1 }}</span>
         </div>
@@ -40,31 +40,31 @@ const currentActiveStep = ref(0)
 
 const steps = [
   {
-    icon: '📝',
+    icon: 'clipboard',
     title: 'Cargar el pedido',
     desc: 'El docente o encargado detalla la falla, aula y prioridad en el formulario.',
     actor: 'Docente / Solicitante'
   },
   {
-    icon: '🔍',
+    icon: 'search',
     title: 'Diagnóstico',
     desc: 'Comisión evalúa el equipo, identifica daño en componentes o software.',
     actor: 'Técnico de Comisión'
   },
   {
-    icon: '⚙️',
+    icon: 'wrench',
     title: 'Reparar u optimizar',
     desc: 'Soldadura de periféricos, cambio de piezas o debloating de Windows.',
     actor: 'Hardware / Soft y Redes'
   },
   {
-    icon: '🧪',
+    icon: 'flask',
     title: 'Probar',
     desc: 'Control de calidad estricto y registro de materiales/insumos consumidos.',
     actor: 'Control de Calidad'
   },
   {
-    icon: '✅',
+    icon: 'check-circle',
     title: 'Entregar',
     desc: 'El docente verifica funcionamiento y se asienta el cierre en el historial.',
     actor: 'Docente y Consejo'

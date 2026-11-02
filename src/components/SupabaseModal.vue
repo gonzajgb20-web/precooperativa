@@ -6,14 +6,16 @@
           <h2 class="modal-title">Conexión con Supabase</h2>
           <p class="modal-subtitle">Integración con PostgreSQL en la nube para persistencia multi-usuario</p>
         </div>
-        <button class="close-btn" @click="$emit('close')">✕</button>
+        <button class="close-btn" @click="$emit('close')">
+          <AppIcon name="x" :size="18" />
+        </button>
       </div>
 
       <div class="modal-body">
         <!-- Estado de la conexión -->
         <div class="connection-status-card" :class="dataSource === 'supabase' ? 'status-connected' : 'status-local'">
           <div class="status-icon">
-            {{ dataSource === 'supabase' ? '🟢' : '🟡' }}
+            <AppIcon :name="dataSource === 'supabase' ? 'database' : 'laptop'" :size="24" :color="dataSource === 'supabase' ? '#059669' : '#d97706'" />
           </div>
           <div class="status-info">
             <strong>{{ dataSource === 'supabase' ? 'Supabase Activo y Conectado' : 'Operando en Modo Demo Local' }}</strong>
@@ -53,7 +55,7 @@
               placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
             ></textarea>
             <small class="form-hint">
-              🛡️ <strong>Aviso de seguridad (Punto 16):</strong> Utilizá únicamente la clave pública <code>anon</code>. NUNCA ingreses la <code>service_role</code> en la aplicación cliente.
+              <AppIcon name="shield" :size="14" /> <strong>Aviso de seguridad (Punto 16):</strong> Utilizá únicamente la clave pública <code>anon</code>. NUNCA ingreses la <code>service_role</code> en la aplicación cliente.
             </small>
           </div>
 
@@ -81,17 +83,19 @@
               class="btn btn-emerald btn-sm"
               :disabled="isSeeding"
             >
-              {{ isSeeding ? 'Poblando tablas...' : '⚡ Cargar registros simulados a Supabase' }}
+              <AppIcon name="refresh" :size="14" />
+              <span>{{ isSeeding ? 'Poblando tablas...' : 'Cargar registros simulados a Supabase' }}</span>
             </button>
             <button @click="handleResetLocal" class="btn btn-secondary btn-sm">
-              🔄 Restaurar datos de prueba locales
+              <AppIcon name="refresh" :size="14" />
+              <span>Restaurar datos de prueba locales</span>
             </button>
           </div>
         </div>
 
         <!-- Instrucciones SQL -->
         <div class="sql-hint-box">
-          <span class="hint-icon">📄</span>
+          <AppIcon name="file-text" :size="22" color="#64748b" class="hint-icon" />
           <div>
             <strong>Script SQL disponible en el proyecto:</strong>
             <p>

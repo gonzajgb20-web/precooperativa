@@ -12,7 +12,7 @@ export const MOCK_USERS = [
     rol: 'docente',
     rol_nombre: 'Docente / Responsable de Aula (Solicitante)',
     comision: 'Docente de Laboratorio',
-    avatar: '👨‍🏫',
+    icon: 'user-check',
     descripcion_permisos: 'Puede solicitar reparaciones, ver el estado de sus pedidos y confirmar la recepción del equipo reparado.'
   },
   {
@@ -23,7 +23,7 @@ export const MOCK_USERS = [
     rol_nombre: 'Estudiante Asociado / Técnico de Hardware',
     comision: 'Hardware',
     curso: '6to Año Informática',
-    avatar: '🔧',
+    icon: 'wrench',
     descripcion_permisos: 'Gestiona el tablero Kanban, repara periféricos, suelda componentes, prueba equipos y descuenta insumos.'
   },
   {
@@ -34,7 +34,7 @@ export const MOCK_USERS = [
     rol_nombre: 'Estudiante Asociada / Técnica de Software y Redes',
     comision: 'Software y Redes',
     curso: '5to Año Informática',
-    avatar: '💻',
+    icon: 'laptop',
     descripcion_permisos: 'Aplica debloating en Windows, configura adaptadores Wi-Fi y routers escolares, y reporta horas técnicas.'
   },
   {
@@ -45,7 +45,7 @@ export const MOCK_USERS = [
     rol_nombre: 'Consejo de Administración (Tesorería)',
     comision: 'Consejo de Administración',
     curso: '7mo Año Informática',
-    avatar: '📊',
+    icon: 'dollar',
     descripcion_permisos: 'Administra el inventario de repuestos, asienta facturas en el Libro Diario y convoca reuniones.'
   },
   {
@@ -55,7 +55,7 @@ export const MOCK_USERS = [
     rol: 'sindicatura',
     rol_nombre: 'Sindicatura / Comisión Asesora Docente',
     comision: 'Sindicatura y Fiscalización',
-    avatar: '⚖️',
+    icon: 'shield',
     descripcion_permisos: 'Acceso de auditoría y lectura a todos los módulos sin intervenir en la carga operativa.'
   }
 ]

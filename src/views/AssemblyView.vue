@@ -8,7 +8,7 @@
 
       <!-- Botón de Cierre del Ejercicio (31 de Octubre) -->
       <button @click="showYearEndModal = true" class="btn btn-emerald btn-lg-glow">
-        <span>📅</span>
+        <AppIcon name="calendar" :size="16" />
         <span>Cierre del ejercicio (31 de Octubre)</span>
       </button>
     </div>
@@ -29,7 +29,8 @@
               @click="showNewMinuteModal = true" 
               class="btn btn-primary btn-sm"
             >
-              ➕ Cargar Acta
+              <AppIcon name="plus" :size="14" />
+              <span>Cargar Acta</span>
             </button>
           </div>
 
@@ -39,7 +40,9 @@
                 <span class="badge" :class="acta.tipo === 'Asamblea Ordinaria' ? 'badge-hardware' : 'badge-software'">
                   {{ acta.tipo }}
                 </span>
-                <span class="minute-date">📅 {{ acta.fecha }}</span>
+                <span class="minute-date">
+                  <AppIcon name="calendar" :size="12" /> {{ acta.fecha }}
+                </span>
               </div>
               <h3 class="minute-title">{{ acta.titulo }}</h3>
               <p class="minute-summary">{{ acta.resumen }}</p>
@@ -63,7 +66,8 @@
               @click="showNewLedgerModal = true" 
               class="btn btn-primary btn-sm"
             >
-              ➕ Asentar Movimiento
+              <AppIcon name="plus" :size="14" />
+              <span>Asentar Movimiento</span>
             </button>
           </div>
 
@@ -127,7 +131,9 @@
 
           <div class="associates-grid">
             <div v-for="asc in associates" :key="asc.id" class="associate-chip">
-              <span class="asc-avatar">🎓</span>
+              <span class="asc-avatar">
+                <AppIcon name="user" :size="18" color="#0284c7" />
+              </span>
               <div class="asc-info">
                 <strong>{{ asc.nombre }}</strong>
                 <span>{{ asc.rol }} • {{ asc.curso }}</span>
@@ -141,7 +147,7 @@
       <!-- Columna Derecha: Tarjeta Oscura "Quién es quién" (Pantalla 7 del PDF) -->
       <div class="card-dark who-is-who-card">
         <div class="who-header">
-          <span class="who-icon">🏛️</span>
+          <AppIcon name="building" :size="28" color="#38bdf8" class="who-icon" />
           <h2 class="who-title">Quién es quién</h2>
           <p class="who-subtitle">Órganos de gobierno institucional y comisiones de trabajo estudiantil</p>
         </div>
@@ -200,7 +206,7 @@
 
         <div class="who-footer-note">
           <p>
-            📜 Conforme a la reglamentación, todas las resoluciones quedan plasmadas en libros rubricados por la dirección de la escuela técnica.
+            <AppIcon name="file-text" :size="13" /> Conforme a la reglamentación, todas las resoluciones quedan plasmadas en libros rubricados por la dirección de la escuela técnica.
           </p>
         </div>
       </div>
@@ -217,7 +223,9 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3 class="modal-title">Cargar Nueva Acta al Libro Oficial</h3>
-          <button class="close-btn" @click="showNewMinuteModal = false">✕</button>
+          <button class="close-btn" @click="showNewMinuteModal = false">
+            <AppIcon name="x" :size="18" />
+          </button>
         </div>
         <form @submit.prevent="handleCreateMinute" class="modal-body">
           <div class="form-group">

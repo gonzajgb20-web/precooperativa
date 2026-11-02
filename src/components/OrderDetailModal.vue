@@ -11,9 +11,13 @@
             </span>
           </div>
           <h2 class="modal-title">{{ order.equipo }}</h2>
-          <span class="modal-subtitle">📍 {{ order.aula_laboratorio }} • Solicitado por {{ order.solicitante_nombre }}</span>
+          <span class="modal-subtitle">
+            <AppIcon name="map-pin" :size="13" /> {{ order.aula_laboratorio }} • Solicitado por {{ order.solicitante_nombre }}
+          </span>
         </div>
-        <button class="close-btn" @click="$emit('close')">✕</button>
+        <button class="close-btn" @click="$emit('close')">
+          <AppIcon name="x" :size="18" />
+        </button>
       </div>
 
       <div class="modal-body">
@@ -66,7 +70,7 @@
           <h4 class="block-title">Insumos y repuestos consumidos:</h4>
           <ul class="parts-list">
             <li v-for="part in order.insumos_usados" :key="part.id || part.nombre" class="part-item">
-              <span>🔩 {{ part.nombre }}</span>
+              <span><AppIcon name="wrench" :size="14" /> {{ part.nombre }}</span>
               <span class="part-qty">x {{ part.cantidad }}</span>
             </li>
           </ul>
@@ -130,7 +134,7 @@
           <div v-else-if="isDocente && order.estado === 'Probado'" class="teacher-confirm-box">
             <p>El equipo ya superó el control de calidad. ¿Deseas confirmar la recepción en el aula?</p>
             <button @click="confirmDelivery" class="btn btn-emerald">
-              ✓ Confirmar recepción conforme del equipo
+              <AppIcon name="check" :size="16" /> Confirmar recepción conforme del equipo
             </button>
           </div>
 
@@ -162,7 +166,7 @@
         </div>
 
         <div v-if="isReadOnly" class="read-only-banner">
-          👁️ Modo auditoría (Sindicatura / Asesora): Sólo lectura. No se permiten modificaciones directas.
+          <AppIcon name="eye" :size="16" /> Modo auditoría (Sindicatura / Asesora): Sólo lectura. No se permiten modificaciones directas.
         </div>
 
         <!-- Trazabilidad / Historial de Estados (Auditoría) -->

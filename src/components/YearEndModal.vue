@@ -3,11 +3,15 @@
     <div class="modal-card">
       <div class="modal-header header-emerald">
         <div>
-          <span class="badge badge-date">📅 Ejercicio cerrado al 31 de Octubre</span>
+          <span class="badge badge-date">
+            <AppIcon name="calendar" :size="13" /> Ejercicio cerrado al 31 de Octubre
+          </span>
           <h2 class="modal-title text-white">Memoria y Balance Anual Precooperativo</h2>
           <p class="modal-subtitle text-white-dim">Clínica de Hardware y Optimización Escolar — Para elevar a Asamblea Anual Ordinaria en Noviembre</p>
         </div>
-        <button class="close-btn text-white" @click="$emit('close')">✕</button>
+        <button class="close-btn text-white" @click="$emit('close')">
+          <AppIcon name="x" :size="18" />
+        </button>
       </div>
 
       <div class="modal-body">
@@ -15,28 +19,36 @@
         <h4 class="section-title">1. Indicadores Cuantitativos de Impacto Escolar</h4>
         <div class="metrics-grid">
           <div class="metric-card">
-            <span class="metric-icon">💻</span>
+            <span class="metric-icon">
+              <AppIcon name="laptop" :size="26" color="#059669" />
+            </span>
             <span class="metric-value">{{ stats.computersOptimized }}</span>
             <span class="metric-label">Computadoras optimizadas</span>
             <span class="metric-detail">Debloating y puesta a punto de RAM</span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-icon">🎧</span>
+            <span class="metric-icon">
+              <AppIcon name="headphones" :size="26" color="#059669" />
+            </span>
             <span class="metric-value">{{ stats.peripheralsRecovered }}</span>
             <span class="metric-label">Periféricos reparados</span>
             <span class="metric-detail">Auriculares con ficha jack soldada y mouses</span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-icon">📶</span>
+            <span class="metric-icon">
+              <AppIcon name="wifi" :size="26" color="#059669" />
+            </span>
             <span class="metric-value">+40%</span>
             <span class="metric-label">Estabilidad de red Wi-Fi</span>
             <span class="metric-detail">Routers de aulas reconfigurados</span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-icon">⏱️</span>
+            <span class="metric-icon">
+              <AppIcon name="clock" :size="26" color="#059669" />
+            </span>
             <span class="metric-value">{{ stats.hoursSaved }} h</span>
             <span class="metric-label">Horas de taller devueltas</span>
             <span class="metric-detail">Aulas con computadoras operativas</span>
@@ -61,7 +73,7 @@
         </div>
 
         <div class="coop-rule-box">
-          <strong>⚖️ Principio Cooperativo de Excedentes:</strong>
+          <strong><AppIcon name="shield" :size="14" /> Principio Cooperativo de Excedentes:</strong>
           <p>
             Conforme al Art. 9 del Estatuto Institucional, los excedentes de $ {{ stats.netBalance.toLocaleString() }} 
             <strong>no se reparten en dinero</strong> entre los asociados, sino que se destinan a la compra de soldadores, estaño y adaptadores para el siguiente ciclo lectivo escolar.
@@ -71,7 +83,10 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" @click="$emit('close')">Cerrar</button>
-        <button class="btn btn-emerald" @click="printSummary">🖨️ Exportar Memoria para la Asamblea</button>
+        <button class="btn btn-emerald" @click="printSummary">
+          <AppIcon name="printer" :size="16" />
+          <span>Exportar Memoria para la Asamblea</span>
+        </button>
       </div>
     </div>
   </div>

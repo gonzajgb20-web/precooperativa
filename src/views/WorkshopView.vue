@@ -10,14 +10,18 @@
       <div class="toolbar-wrap">
         <!-- Búsqueda rápida -->
         <div class="search-input-wrap">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon">
+            <AppIcon name="search" :size="15" />
+          </span>
           <input 
             type="text" 
             v-model="searchQuery" 
             placeholder="Buscar por equipo, aula, código OT o falla..."
             class="search-input"
           />
-          <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn">✕</button>
+          <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn">
+            <AppIcon name="x" :size="12" />
+          </button>
         </div>
 
         <!-- Filtro de Comisión -->
@@ -34,14 +38,16 @@
             class="pill-btn" 
             :class="{ active: selectedCommission === 'Hardware' }"
           >
-            🔧 Hardware
+            <AppIcon name="wrench" :size="13" />
+            <span>Hardware</span>
           </button>
           <button 
             @click="selectedCommission = 'Software y Redes'" 
             class="pill-btn" 
             :class="{ active: selectedCommission === 'Software y Redes' }"
           >
-            💻 Software y Redes
+            <AppIcon name="laptop" :size="13" />
+            <span>Software y Redes</span>
           </button>
         </div>
 
@@ -51,7 +57,8 @@
           class="toggle-mine-btn" 
           :class="{ active: onlyMine }"
         >
-          {{ onlyMine ? '✓ Mostrando mis pedidos' : '👤 Solo mis pedidos' }}
+          <AppIcon :name="onlyMine ? 'check' : 'user'" :size="14" />
+          <span>{{ onlyMine ? 'Mostrando mis pedidos' : 'Solo mis pedidos' }}</span>
         </button>
       </div>
     </div>
@@ -67,7 +74,7 @@
         >
           <div class="column-header" :class="col.colorClass">
             <div class="col-title-wrap">
-              <span class="col-icon">{{ col.icon }}</span>
+              <AppIcon :name="col.icon" :size="15" />
               <span class="col-title">{{ col.title }}</span>
             </div>
             <span class="col-counter">{{ getColumnOrders(col.status).length }}</span>
@@ -91,7 +98,9 @@
               </div>
 
               <h4 class="card-equipment">{{ order.equipo }}</h4>
-              <span class="card-location">📍 {{ order.aula_laboratorio }}</span>
+              <span class="card-location">
+                <AppIcon name="map-pin" :size="11" /> {{ order.aula_laboratorio }}
+              </span>
 
               <p class="card-desc-snippet">{{ order.descripcion_falla }}</p>
 
@@ -123,8 +132,8 @@
 
           <h2 class="sidebar-title">{{ activeOrder.equipo }}</h2>
           <div class="sidebar-meta-row">
-            <span>📍 {{ activeOrder.aula_laboratorio }}</span>
-            <span>👤 Solicitó: {{ activeOrder.solicitante_nombre }}</span>
+            <span><AppIcon name="map-pin" :size="12" /> {{ activeOrder.aula_laboratorio }}</span>
+            <span><AppIcon name="user" :size="12" /> Solicitó: {{ activeOrder.solicitante_nombre }}</span>
           </div>
 
           <div class="sidebar-tags">
@@ -155,7 +164,8 @@
           <!-- Botón de apertura de modal completo de gestión -->
           <div class="sidebar-actions">
             <button @click="isDetailModalOpen = true" class="btn btn-primary btn-block">
-              Gestionar o avanzar estado →
+              <span>Gestionar o avanzar estado</span>
+              <AppIcon name="arrow-right" :size="14" />
             </button>
           </div>
 
@@ -174,7 +184,7 @@
       <!-- Panel placeholder cuando no hay selección -->
       <div v-else class="detail-sidebar detail-empty-placeholder">
         <div class="empty-placeholder-card">
-          <span class="placeholder-icon">👈</span>
+          <AppIcon name="clipboard" :size="36" color="#94a3b8" class="placeholder-icon" />
           <h4>Seleccioná una orden</h4>
           <p>Hacé clic en cualquier tarjeta del tablero para ver su trazabilidad, diagnóstico y opciones operativas.</p>
         </div>
@@ -207,11 +217,11 @@ const activeOrder = ref(null)
 const isDetailModalOpen = ref(false)
 
 const kanbanColumns = [
-  { status: 'Recibido', title: 'Recibido', icon: '📥', colorClass: 'col-recibido' },
-  { status: 'Diagnóstico', title: 'Diagnóstico', icon: '🔍', colorClass: 'col-diagnostico' },
-  { status: 'Reparar u optimizar', title: 'En reparación', icon: '⚙️', colorClass: 'col-reparar' },
-  { status: 'Probado', title: 'Probado', icon: '🧪', colorClass: 'col-probado' },
-  { status: 'Entregado', title: 'Entregado', icon: '✅', colorClass: 'col-entregado' }
+  { status: 'Recibido', title: 'Recibido', icon: 'inbox', colorClass: 'col-recibido' },
+  { status: 'Diagnóstico', title: 'Diagnóstico', icon: 'search', colorClass: 'col-diagnostico' },
+  { status: 'Reparar u optimizar', title: 'En reparación', icon: 'wrench', colorClass: 'col-reparar' },
+  { status: 'Probado', title: 'Probado', icon: 'flask', colorClass: 'col-probado' },
+  { status: 'Entregado', title: 'Entregado', icon: 'check-circle', colorClass: 'col-entregado' }
 ]
 
 const filteredOrders = computed(() => {

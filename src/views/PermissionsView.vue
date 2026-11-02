@@ -27,10 +27,22 @@
           <thead>
             <tr>
               <th class="th-entity">Módulo / Datos del Sistema</th>
-              <th :class="{ 'th-active': isDocente }">👨‍🏫 Docente / Solicitante</th>
-              <th :class="{ 'th-active': isTecnico }">🔧 Estudiante de Comisión</th>
-              <th :class="{ 'th-active': isConsejo }">📊 Consejo de Administración</th>
-              <th :class="{ 'th-active': isSindicatura }">⚖️ Sindicatura / Asesora</th>
+              <th :class="{ 'th-active': isDocente }">
+                <AppIcon name="user-check" :size="14" />
+                <span>Docente / Solicitante</span>
+              </th>
+              <th :class="{ 'th-active': isTecnico }">
+                <AppIcon name="wrench" :size="14" />
+                <span>Estudiante de Comisión</span>
+              </th>
+              <th :class="{ 'th-active': isConsejo }">
+                <AppIcon name="dollar" :size="14" />
+                <span>Consejo de Administración</span>
+              </th>
+              <th :class="{ 'th-active': isSindicatura }">
+                <AppIcon name="shield" :size="14" />
+                <span>Sindicatura / Asesora</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -70,7 +82,7 @@
       <!-- Punto 10: Persistencia de Información -->
       <div class="card arch-card">
         <div class="arch-card-header">
-          <span class="arch-icon">💾</span>
+          <AppIcon name="database" :size="24" color="#0284c7" class="arch-icon" />
           <div>
             <h3 class="arch-title">Punto 10: Persistencia de Información</h3>
             <span class="arch-sub">¿Qué se conserva localmente y qué se comparte entre dispositivos?</span>
@@ -80,7 +92,10 @@
         <div class="arch-content">
           <div class="data-split-box">
             <div class="split-col">
-              <h4 class="split-heading text-primary">📱 Local (Al cerrar la App)</h4>
+              <h4 class="split-heading text-primary">
+                <AppIcon name="laptop" :size="15" />
+                <span>Local (Al cerrar la App)</span>
+              </h4>
               <ul class="split-list">
                 <li><strong>Sesión activa y rol simulado:</strong> Perfil del usuario activo en el navegador.</li>
                 <li><strong>Preferencias visuales:</strong> Filtros seleccionados, pestañas activas y búsqueda.</li>
@@ -90,7 +105,10 @@
             </div>
 
             <div class="split-col">
-              <h4 class="split-heading text-emerald">🌐 Compartida (Multi-Dispositivo en Nube)</h4>
+              <h4 class="split-heading text-emerald">
+                <AppIcon name="wifi" :size="15" />
+                <span>Compartida (Multi-Dispositivo en Nube)</span>
+              </h4>
               <ul class="split-list">
                 <li><strong>Órdenes de Trabajo y Estados:</strong> Visibles en tiempo real para todos los talleres y aulas.</li>
                 <li><strong>Stock del Pañol de Repuestos:</strong> Evita que dos comisiones consuman la misma pieza simultáneamente.</li>
@@ -105,7 +123,7 @@
       <!-- Punto 11: Justificación del Backend y Base de Datos -->
       <div class="card arch-card">
         <div class="arch-card-header">
-          <span class="arch-icon">🛡️</span>
+          <AppIcon name="shield" :size="24" color="#059669" class="arch-icon" />
           <div>
             <h3 class="arch-title">Punto 11: Justificación del Backend</h3>
             <span class="arch-sub">¿Por qué es indispensable contar con base de datos y backend?</span>
@@ -121,7 +139,10 @@
           </div>
 
           <div class="limitations-box">
-            <h5>⚠️ Limitaciones críticas de una solución sin backend (Solo LocalStorage):</h5>
+            <h5>
+              <AppIcon name="alert-triangle" :size="14" />
+              <span>Limitaciones críticas de una solución sin backend (Solo LocalStorage):</span>
+            </h5>
             <ol class="limitations-list">
               <li>
                 <strong>Aislamiento de datos:</strong> Si el docente carga un pedido en su celular o PC del aula, el estudiante en el laboratorio NO puede verlo, anulando el flujo del taller.
@@ -149,7 +170,8 @@
           <p class="sub-desc">Diseño relacional PostgreSQL/Supabase con claves foráneas, restricciones y políticas RLS</p>
         </div>
         <a href="#schema-view" @click="showSql = !showSql" class="btn btn-secondary btn-sm">
-          {{ showSql ? 'Ocultar Código SQL' : '👁️ Ver Script SQL Completo' }}
+          <AppIcon name="eye" :size="14" />
+          <span>{{ showSql ? 'Ocultar Código SQL' : 'Ver Script SQL Completo' }}</span>
         </a>
       </div>
 
@@ -159,7 +181,7 @@
           <div class="entity-name">profiles</div>
           <span class="entity-desc">Usuarios y Roles</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
+            <span class="pk">PK: id (UUID)</span>
             <span>nombre_completo</span>
             <span>email</span>
             <span>rol (CHECK)</span>
@@ -171,9 +193,9 @@
           <div class="entity-name">ordenes_trabajo</div>
           <span class="entity-desc">Pedidos y Reparaciones</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
-            <span class="fk">🔗 solicitante_id</span>
-            <span class="fk">🔗 tecnico_asignado_id</span>
+            <span class="pk">PK: id (UUID)</span>
+            <span class="fk">FK: solicitante_id</span>
+            <span class="fk">FK: tecnico_asignado_id</span>
             <span>codigo_ot (UNIQUE)</span>
             <span>estado (ENUM)</span>
             <span>descripcion_falla</span>
@@ -184,8 +206,8 @@
           <div class="entity-name">historial_estados</div>
           <span class="entity-desc">Auditoría / Trazabilidad</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
-            <span class="fk">🔗 orden_id</span>
+            <span class="pk">PK: id (UUID)</span>
+            <span class="fk">FK: orden_id</span>
             <span>estado_anterior</span>
             <span>estado_nuevo</span>
             <span>revisor_nombre</span>
@@ -197,7 +219,7 @@
           <div class="entity-name">inventario_repuestos</div>
           <span class="entity-desc">Pañol e Insumos</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
+            <span class="pk">PK: id (UUID)</span>
             <span>nombre</span>
             <span>stock_actual</span>
             <span>stock_minimo</span>
@@ -209,7 +231,7 @@
           <div class="entity-name">libro_diario</div>
           <span class="entity-desc">Transparencia Contable</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
+            <span class="pk">PK: id (UUID)</span>
             <span>numero_asiento (SERIAL)</span>
             <span>tipo_movimiento</span>
             <span>monto</span>
@@ -221,7 +243,7 @@
           <div class="entity-name">actas</div>
           <span class="entity-desc">Libro Oficial Rubricado</span>
           <div class="entity-fields">
-            <span class="pk">🔑 id (UUID)</span>
+            <span class="pk">PK: id (UUID)</span>
             <span>numero_acta</span>
             <span>tipo_acta</span>
             <span>resumen_acuerdos</span>
@@ -234,7 +256,10 @@
       <div v-if="showSql" id="schema-view" class="sql-viewer-box">
         <div class="sql-bar">
           <span>Archivo en el repositorio: <code>supabase_schema.sql</code></span>
-          <button @click="copySqlCode" class="btn btn-secondary btn-sm">📋 Copiar SQL</button>
+          <button @click="copySqlCode" class="btn btn-secondary btn-sm">
+            <AppIcon name="copy" :size="14" />
+            <span>Copiar SQL</span>
+          </button>
         </div>
         <pre class="sql-code-block"><code>{{ sqlPreview }}</code></pre>
       </div>

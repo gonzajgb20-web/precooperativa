@@ -48,10 +48,12 @@
         <!-- Selector de Rol Simulado (Punto 4 del enunciado) -->
         <div class="role-selector-wrap">
           <button @click="showRoleDropdown = !showRoleDropdown" class="role-badge-btn">
-            <span class="role-avatar">{{ currentUser.avatar }}</span>
+            <span class="role-avatar-icon">
+              <AppIcon :name="currentUser.icon || 'user'" :size="16" />
+            </span>
             <span class="role-name-text">{{ userDisplayName }}</span>
             <span class="role-tag-pill">ROL: {{ currentUser.rol }}</span>
-            <span class="arrow-down">▾</span>
+            <AppIcon name="chevron-down" :size="14" class="arrow-down" />
           </button>
 
           <!-- Dropdown de simulación de roles -->
@@ -67,12 +69,16 @@
               class="dropdown-user-item"
               :class="{ selected: user.id === currentUser.id }"
             >
-              <span class="item-avatar">{{ user.avatar }}</span>
+              <span class="item-avatar-icon">
+                <AppIcon :name="user.icon || 'user'" :size="18" />
+              </span>
               <div class="item-details">
                 <span class="item-name">{{ user.nombre_completo }}</span>
                 <span class="item-role-desc">{{ user.rol_nombre }}</span>
               </div>
-              <span v-if="user.id === currentUser.id" class="check-mark">✓</span>
+              <span v-if="user.id === currentUser.id" class="check-mark">
+                <AppIcon name="check" :size="16" />
+              </span>
             </button>
           </div>
         </div>
@@ -83,27 +89,27 @@
   <!-- Barra de navegación inferior móvil -->
   <nav class="mobile-nav-bar">
     <router-link to="/" class="mobile-nav-item" active-class="active">
-      <span>🏠</span>
+      <AppIcon name="home" :size="18" />
       <span>Inicio</span>
     </router-link>
     <router-link to="/nuevo-pedido" class="mobile-nav-item" active-class="active">
-      <span>➕</span>
+      <AppIcon name="plus" :size="18" />
       <span>Pedido</span>
     </router-link>
     <router-link to="/taller" class="mobile-nav-item" active-class="active">
-      <span>🛠️</span>
+      <AppIcon name="wrench" :size="18" />
       <span>Taller</span>
     </router-link>
     <router-link to="/inventario" class="mobile-nav-item" active-class="active">
-      <span>📦</span>
+      <AppIcon name="package" :size="18" />
       <span>Stock</span>
     </router-link>
     <router-link to="/asamblea" class="mobile-nav-item" active-class="active">
-      <span>👥</span>
+      <AppIcon name="users" :size="18" />
       <span>Asamblea</span>
     </router-link>
     <router-link to="/permisos" class="mobile-nav-item" active-class="active">
-      <span>🔒</span>
+      <AppIcon name="lock" :size="18" />
       <span>Permisos</span>
     </router-link>
   </nav>

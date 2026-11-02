@@ -7,10 +7,12 @@
       :class="`toast-${toast.type}`"
     >
       <div class="toast-msg">
-        <span class="toast-icon">{{ getIcon(toast.type) }}</span>
+        <AppIcon :name="getIcon(toast.type)" :size="18" class="toast-icon" />
         <span>{{ toast.message }}</span>
       </div>
-      <button class="toast-close" @click="dismiss(toast.id)">✕</button>
+      <button class="toast-close" @click="dismiss(toast.id)">
+        <AppIcon name="x" :size="14" />
+      </button>
     </div>
   </div>
 </template>
@@ -22,10 +24,10 @@ const { toasts, dismiss } = useToast()
 
 const getIcon = (type) => {
   switch (type) {
-    case 'success': return '✅'
-    case 'error': return '❌'
-    case 'warning': return '⚠️'
-    default: return 'ℹ️'
+    case 'success': return 'check-circle'
+    case 'error': return 'alert-circle'
+    case 'warning': return 'alert-triangle'
+    default: return 'info'
   }
 }
 </script>

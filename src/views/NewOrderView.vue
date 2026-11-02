@@ -6,7 +6,8 @@
         <p class="view-subtitle">Poné el taller en movimiento: describí el equipo y la falla reportada en el aula o laboratorio.</p>
       </div>
       <div v-if="!canCreateOrder" class="permission-warning">
-        ⚠️ Tu rol actual ({{ currentUser.rol }}) no está habilitado para cargar pedidos. Cambiá al rol de <strong>Docente</strong> en la barra superior.
+        <AppIcon name="alert-triangle" :size="15" />
+        <span>Tu rol actual ({{ currentUser.rol }}) no está habilitado para cargar pedidos. Cambiá al rol de <strong>Docente</strong> en la barra superior.</span>
       </div>
     </div>
 
@@ -83,7 +84,9 @@
                   :disabled="!canCreateOrder || isSubmitting"
                 />
                 <div class="opt-body">
-                  <span class="opt-icon">🔧</span>
+                  <span class="opt-icon">
+                    <AppIcon name="wrench" :size="20" color="#ea580c" />
+                  </span>
                   <div>
                     <strong>Comisión de Hardware</strong>
                     <p>Reparaciones físicas, soldadura, fuentes y periféricos</p>
@@ -102,7 +105,9 @@
                   :disabled="!canCreateOrder || isSubmitting"
                 />
                 <div class="opt-body">
-                  <span class="opt-icon">💻</span>
+                  <span class="opt-icon">
+                    <AppIcon name="laptop" :size="20" color="#0284c7" />
+                  </span>
                   <div>
                     <strong>Comisión de Software y Redes</strong>
                     <p>Debloating de Windows, lentitud, routers y conectividad</p>
@@ -136,8 +141,8 @@
 
           <!-- Datos de Autoría -->
           <div class="author-info-box">
-            <span>👤 Solicitante: <strong>{{ currentUser.nombre_completo }}</strong></span>
-            <span>🏷️ Rol: <strong>{{ currentUser.rol_nombre }}</strong></span>
+            <span><AppIcon name="user" :size="13" /> Solicitante: <strong>{{ currentUser.nombre_completo }}</strong></span>
+            <span><AppIcon name="tag" :size="13" /> Rol: <strong>{{ currentUser.rol_nombre }}</strong></span>
           </div>
 
           <!-- Botón de Envío -->
@@ -148,7 +153,10 @@
               :disabled="!canCreateOrder || isSubmitting"
             >
               <span v-if="isSubmitting">Enviando pedido al taller...</span>
-              <span v-else>🚀 Enviar pedido</span>
+              <span v-else class="btn-content-flex">
+                <AppIcon name="send" :size="16" />
+                <span>Enviar pedido</span>
+              </span>
             </button>
           </div>
         </form>
@@ -157,7 +165,7 @@
       <!-- Columna Derecha: Tarjeta Explicativa "Qué guarda el sistema" (Pantalla 3 del PDF) -->
       <div class="system-explainer-card">
         <div class="explainer-header">
-          <span class="explainer-icon">📋</span>
+          <AppIcon name="clipboard" :size="24" color="#ca8a04" class="explainer-icon" />
           <h3 class="explainer-title">Qué guarda el sistema</h3>
         </div>
         <p class="explainer-intro">
@@ -166,49 +174,49 @@
 
         <ul class="explainer-list">
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Número de orden único (OT)</strong>
               <p>Código secuencial para seguimiento en pizarrón físico y digital.</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Equipo y aula</strong>
               <p>Identificación exacta para coordinar retiro y devolución.</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Descripción detallada de la falla</strong>
               <p>El punto de partida para el diagnóstico estudiantil.</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Comisión responsable asignada</strong>
               <p>Distribución hacia Hardware o Software y Redes.</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Nivel de prioridad</strong>
               <p>Baja, Media o Alta según el impacto pedagógico en el aula.</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Quién lo pidió y cuándo</strong>
               <p>Docente solicitante con marca temporal precisa (timestamp).</p>
             </div>
           </li>
           <li class="explainer-item">
-            <span class="check-bullet">✔</span>
+            <AppIcon name="check" :size="15" class="check-bullet" color="#ca8a04" />
             <div>
               <strong>Cada cambio de estado con revisor y fecha</strong>
               <p>Historial inmutable de auditoría para la Sindicatura y Asamblea.</p>

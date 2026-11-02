@@ -13,10 +13,12 @@
           @click="showNewItemModal = true" 
           class="btn btn-primary btn-sm"
         >
-          ➕ Nuevo repuesto / insumo
+          <AppIcon name="plus" :size="14" />
+          <span>Nuevo repuesto / insumo</span>
         </button>
         <span v-if="!canEditInventory" class="role-notice">
-          ℹ️ Tu rol actual ({{ currentUser.rol }}) tiene permiso de sólo lectura en el pañol de repuestos.
+          <AppIcon name="info" :size="14" />
+          <span>Tu rol actual ({{ currentUser.rol }}) tiene permiso de sólo lectura en el pañol de repuestos.</span>
         </span>
       </div>
     </div>
@@ -31,7 +33,8 @@
             <span class="badge badge-mock">DATOS DE PRUEBA</span>
           </div>
           <span class="stock-alerts-count" v-if="lowStockItemsCount > 0">
-            ⚠️ {{ lowStockItemsCount }} bajo stock mínimo
+            <AppIcon name="alert-triangle" :size="13" />
+            <span>{{ lowStockItemsCount }} bajo stock mínimo</span>
           </span>
         </div>
 
@@ -43,7 +46,7 @@
             :class="{ 'item-low-stock': item.stock_actual <= item.stock_minimo }"
           >
             <div class="item-icon-box">
-              <span class="item-cat-icon">{{ getItemIcon(item.categoria) }}</span>
+              <AppIcon :name="getItemIcon(item.categoria)" :size="20" color="#ea580c" />
             </div>
 
             <div class="item-info">
@@ -55,7 +58,7 @@
               </div>
 
               <div class="item-meta">
-                <span>📍 {{ item.ubicacion }}</span>
+                <span><AppIcon name="map-pin" :size="12" /> {{ item.ubicacion }}</span>
                 <span>• Categoría: {{ item.categoria }}</span>
                 <span>• Est.: ${{ item.precio_estimado.toLocaleString() }} c/u</span>
               </div>
@@ -121,7 +124,9 @@
             </div>
 
             <h4 class="att-title">{{ order.equipo }}</h4>
-            <span class="att-loc">📍 {{ order.aula_laboratorio }} • Solicitó: {{ order.solicitante_nombre }}</span>
+            <span class="att-loc">
+              <AppIcon name="map-pin" :size="12" /> {{ order.aula_laboratorio }} • Solicitó: {{ order.solicitante_nombre }}
+            </span>
 
             <p v-if="order.trabajo_realizado" class="att-work">
               {{ order.trabajo_realizado }}
@@ -256,11 +261,11 @@ const attendedOrders = computed(() => {
 
 const getItemIcon = (cat) => {
   switch (cat) {
-    case 'Hardware': return '💻'
-    case 'Redes': return '📶'
-    case 'Insumos': return '🧵'
-    case 'Herramientas': return '🔧'
-    default: return '📦'
+    case 'Hardware': return 'laptop'
+    case 'Redes': return 'wifi'
+    case 'Insumos': return 'cpu'
+    case 'Herramientas': return 'wrench'
+    default: return 'package'
   }
 }
 
@@ -268,7 +273,7 @@ const adjustStock = async (item, delta) => {
   try {
     const updated = await updateInventoryStock(item.id, delta, currentUser.value)
     if (updated.alerta_stock) {
-      warning(`⚠️ ¡Atención! El stock de ${updated.nombre} cayó al nivel mínimo (${updated.stock_actual} unidades).`)
+      warning(`¡Atención! El stock de ${updated.nombre} cayó al nivel mínimo (${updated.stock_actual} unidades).`)
     } else {
       success(`Stock de ${updated.nombre} actualizado (${updated.stock_actual} unidades).`)
     }

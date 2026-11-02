@@ -4,18 +4,18 @@
     <div class="hero-welcome-card">
       <div class="hero-left">
         <span class="hero-pre-badge">Panel de la Precooperativa Escolar</span>
-        <h1 class="hero-title">Hola, {{ userDisplayName }} 👋</h1>
+        <h1 class="hero-title">Hola, {{ userDisplayName }}</h1>
         <p class="hero-subtitle">
           Hoy tenemos <strong>{{ activeOrdersCount }} equipos</strong> en el taller y 
           <strong :class="{ 'text-alert': lowStockCount > 0 }">{{ lowStockCount }} repuestos</strong> por debajo del stock mínimo.
         </p>
         <div class="hero-actions">
           <router-link to="/nuevo-pedido" class="btn btn-primary">
-            <span>➕</span>
+            <AppIcon name="plus" :size="16" />
             <span>Nuevo pedido</span>
           </router-link>
           <router-link to="/taller" class="btn btn-secondary">
-            <span>🛠️</span>
+            <AppIcon name="wrench" :size="16" />
             <span>Ver órdenes de trabajo</span>
           </router-link>
         </div>
@@ -65,7 +65,9 @@
           </div>
 
           <h3 class="order-equipment">{{ order.equipo }}</h3>
-          <span class="order-location">📍 {{ order.aula_laboratorio }}</span>
+          <span class="order-location">
+            <AppIcon name="map-pin" :size="12" /> {{ order.aula_laboratorio }}
+          </span>
           <p class="order-desc">{{ order.descripcion_falla }}</p>
 
           <div class="order-bottom-row">
