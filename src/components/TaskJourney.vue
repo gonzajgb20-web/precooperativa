@@ -1,11 +1,7 @@
 <template>
   <div class="journey-card">
     <div class="journey-header">
-      <div>
-        <h3 class="journey-title">Recorrido de una tarea</h3>
-        <p class="journey-subtitle">Flujo operativo estándar: de la falla reportada al equipo funcional entregado</p>
-      </div>
-      <span class="journey-badge">Ciclo de 5 etapas</span>
+      <h3 class="journey-title">Flujo del Taller</h3>
     </div>
 
     <div class="steps-grid">
@@ -18,16 +14,13 @@
       >
         <div class="step-top">
           <div class="step-number-circle">
-            <AppIcon :name="step.icon" :size="18" color="#ea580c" />
+            <AppIcon :name="step.icon" :size="15" color="#ea580c" />
           </div>
           <span class="step-tag">Paso {{ index + 1 }}</span>
         </div>
         <h4 class="step-name">{{ step.title }}</h4>
         <p class="step-desc">{{ step.desc }}</p>
-        <div class="step-actor">
-          <span class="actor-label">Responsable:</span>
-          <span class="actor-name">{{ step.actor }}</span>
-        </div>
+        <span class="actor-badge">{{ step.actor }}</span>
       </div>
     </div>
   </div>
@@ -41,33 +34,33 @@ const currentActiveStep = ref(0)
 const steps = [
   {
     icon: 'clipboard',
-    title: 'Cargar el pedido',
-    desc: 'El docente o encargado detalla la falla, aula y prioridad en el formulario.',
-    actor: 'Docente / Solicitante'
+    title: 'Recepción',
+    desc: 'Registro inicial de la falla y aula de origen.',
+    actor: 'Docente'
   },
   {
     icon: 'search',
     title: 'Diagnóstico',
-    desc: 'Comisión evalúa el equipo, identifica daño en componentes o software.',
-    actor: 'Técnico de Comisión'
+    desc: 'Evaluación técnica de componentes y estado general.',
+    actor: 'Técnico'
   },
   {
     icon: 'wrench',
-    title: 'Reparar u optimizar',
-    desc: 'Soldadura de periféricos, cambio de piezas o debloating de Windows.',
-    actor: 'Hardware / Soft y Redes'
-  },
-  {
-    icon: 'flask',
-    title: 'Probar',
-    desc: 'Control de calidad estricto y registro de materiales/insumos consumidos.',
-    actor: 'Control de Calidad'
+    title: 'Reparación',
+    desc: 'Sustitución de piezas, soldadura y optimización.',
+    actor: 'Comisión'
   },
   {
     icon: 'check-circle',
-    title: 'Entregar',
-    desc: 'El docente verifica funcionamiento y se asienta el cierre en el historial.',
-    actor: 'Docente y Consejo'
+    title: 'Control',
+    desc: 'Pruebas de estabilidad, temperatura y rendimiento.',
+    actor: 'Técnico'
+  },
+  {
+    icon: 'package',
+    title: 'Entrega',
+    desc: 'Recepción firmada y devolución conforme al aula.',
+    actor: 'Docente'
   }
 ]
 </script>
@@ -78,140 +71,115 @@ const steps = [
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
-  margin-bottom: 2rem;
   box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
 }
 
 .journey-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .journey-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
-.journey-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.journey-badge {
-  font-size: 0.75rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: var(--color-primary);
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-primary-border);
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-full);
+  color: var(--text-main);
+  margin: 0;
 }
 
 .steps-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .steps-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .steps-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.85rem;
 }
 
 .step-card {
-  background: #f8fafc;
+  background: var(--bg-main);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: 1rem 0.85rem;
   display: flex;
   flex-direction: column;
-  transition: all var(--transition-fast);
+  gap: 0.45rem;
   cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 160ms ease-out,
+              background-color 160ms ease-out;
 }
 
 .step-card:hover {
-  background: #ffffff;
-  border-color: var(--color-primary-border);
-  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }
 
+.step-card:active {
+  transform: scale(0.98);
+}
+
 .step-card.active {
-  background: var(--color-primary-light);
+  background: rgba(234, 88, 12, 0.04);
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .step-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
 }
 
 .step-number-circle {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: white;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(234, 88, 12, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
-  font-size: 1.1rem;
 }
 
 .step-tag {
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .step-name {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 0.4rem;
+  margin: 0;
+  line-height: 1.25;
 }
 
 .step-desc {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
+  margin: 0;
+  line-height: 1.35;
   flex: 1;
 }
 
-.step-actor {
-  border-top: 1px dashed var(--border-subtle);
-  padding-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+.actor-badge {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-secondary);
 }
 
-.actor-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--text-dim);
+@media (max-width: 1024px) {
+  .steps-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.actor-name {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-primary);
+@media (max-width: 640px) {
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

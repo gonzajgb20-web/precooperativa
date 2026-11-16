@@ -1,6 +1,6 @@
 <template>
   <div class="modal-backdrop" @click.self="$emit('close')">
-    <div class="modal-card">
+    <div class="modal-card modal-card-lg">
       <div class="modal-header header-emerald">
         <div>
           <span class="badge badge-date">
@@ -60,22 +60,22 @@
         <div class="balance-card">
           <div class="balance-row">
             <span>Ingresos Totales (Aporte cooperativo y donaciones):</span>
-            <strong class="text-success">$ {{ stats.totalIncome.toLocaleString() }}</strong>
+            <strong class="text-success">$ {{ formatCurrency(stats.totalIncome) }}</strong>
           </div>
           <div class="balance-row">
             <span>Egresos en Repuestos y Herramientas:</span>
-            <strong class="text-danger">- $ {{ stats.totalExpense.toLocaleString() }}</strong>
+            <strong class="text-danger">- $ {{ formatCurrency(stats.totalExpense) }}</strong>
           </div>
           <div class="balance-row total-row">
             <span>Fondo Rotatorio Disponible (Superávit para reinversión):</span>
-            <strong class="text-primary">$ {{ stats.netBalance.toLocaleString() }}</strong>
+            <strong class="text-primary">$ {{ formatCurrency(stats.netBalance) }}</strong>
           </div>
         </div>
 
         <div class="coop-rule-box">
           <strong><AppIcon name="shield" :size="14" /> Principio Cooperativo de Excedentes:</strong>
           <p>
-            Conforme al Art. 9 del Estatuto Institucional, los excedentes de $ {{ stats.netBalance.toLocaleString() }} 
+            Conforme al Art. 9 del Estatuto Institucional, los excedentes de $ {{ formatCurrency(stats.netBalance) }} 
             <strong>no se reparten en dinero</strong> entre los asociados, sino que se destinan a la compra de soldadores, estaño y adaptadores para el siguiente ciclo lectivo escolar.
           </p>
         </div>
@@ -99,10 +99,15 @@ import { useData } from '../services/dataService'
 const emit = defineEmits(['close'])
 const { orders, ledger } = useData()
 
+const formatCurrency = (val) => {
+  const num = Number(val)
+  return isNaN(num) ? '0' : num.toLocaleString('es-AR')
+}
+
 const stats = computed(() => {
   const delivered = orders.value.filter(o => o.estado === 'Entregado')
-  const computers = delivered.filter(o => o.equipo.toLowerCase().includes('pc') || o.equipo.toLowerCase().includes('computadora')).length || 2
-  const peripherals = 6 + (delivered.filter(o => o.equipo.toLowerCase().includes('auricular') || o.equipo.toLowerCase().includes('monitor')).length || 1)
+  const computers = delivered.filter(o => (o.equipo || '').toLowerCase().includes('pc') || (o.equipo || '').toLowerCase().includes('computadora')).length || 2
+  const peripherals = 6 + (delivered.filter(o => (o.equipo || '').toLowerCase().includes('auricular') || (o.equipo || '').toLowerCase().includes('monitor')).length || 1)
 
   let totalIncome = 0
   let totalExpense = 0
@@ -130,6 +135,16 @@ const printSummary = () => {
 .header-emerald {
   background: linear-gradient(135deg, #059669, #0f766e);
   color: white;
+}
+
+.header-emerald .close-btn {
+  color: white;
+}
+
+.header-emerald .close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .text-white { color: white; }

@@ -45,17 +45,17 @@
 
           <div class="form-group">
             <label class="form-label">
-              <span>Anon Public Key (Clave Anónima del Cliente)</span>
+              <span>Anon / Publishable Key (Clave Pública del Cliente)</span>
               <span class="safe-tag">Seguro para Frontend</span>
             </label>
             <textarea 
               v-model="inputKey" 
               class="form-textarea" 
               rows="3" 
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              placeholder="sb_publishable_... o eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
             ></textarea>
             <small class="form-hint">
-              <AppIcon name="shield" :size="14" /> <strong>Aviso de seguridad (Punto 16):</strong> Utilizá únicamente la clave pública <code>anon</code>. NUNCA ingreses la <code>service_role</code> en la aplicación cliente.
+              <AppIcon name="shield" :size="14" /> <strong>Aviso de seguridad:</strong> Utilizá únicamente la clave pública del cliente (<code>anon</code> o <code>publishable</code>). NUNCA ingreses la <code>service_role</code> en la aplicación cliente.
             </small>
           </div>
 
@@ -69,26 +69,21 @@
           </div>
         </div>
 
-        <!-- Botones de sincronización y semilla -->
+        <!-- Botones de sincronización y estado -->
         <div class="seed-section">
-          <h4 class="seed-title">Población de datos simulados (Punto 14):</h4>
+          <h4 class="seed-title">Sincronización en tiempo real:</h4>
           <p class="seed-desc">
-            Carga el lote inicial de 5 órdenes, catálogo de 6 repuestos con alertas de stock, asientos del Libro Diario y actas en tu base de datos o almacenamiento local.
+            Los datos de órdenes, inventario, libro diario y actas se sincronizan directamente con la base de datos PostgreSQL de Supabase protegida por RLS.
           </p>
 
           <div class="seed-buttons">
             <button 
-              v-if="dataSource === 'supabase'" 
-              @click="handleSeedSupabase" 
+              @click="handleRefreshData" 
               class="btn btn-emerald btn-sm"
-              :disabled="isSeeding"
+              :disabled="isRefreshing"
             >
               <AppIcon name="refresh" :size="14" />
-              <span>{{ isSeeding ? 'Poblando tablas...' : 'Cargar registros simulados a Supabase' }}</span>
-            </button>
-            <button @click="handleResetLocal" class="btn btn-secondary btn-sm">
-              <AppIcon name="refresh" :size="14" />
-              <span>Restaurar datos de prueba locales</span>
+              <span>{{ isRefreshing ? 'Sincronizando...' : 'Recargar datos desde Supabase' }}</span>
             </button>
           </div>
         </div>
@@ -120,13 +115,13 @@ import { useToast } from '../composables/useToast'
 
 const emit = defineEmits(['close'])
 
-const { dataSource, seedSupabaseData, resetToMockData } = useData()
-const { success, error, info } = useToast()
+const { dataSource, initDataService } = useData()
+const { success, error } = useToast()
 
 const inputUrl = ref(localStorage.getItem('preco_supabase_url') || supabaseUrl || '')
 const inputKey = ref(localStorage.getItem('preco_supabase_key') || supabaseAnonKey || '')
 const hasStoredCredentials = ref(Boolean(localStorage.getItem('preco_supabase_url')))
-const isSeeding = ref(false)
+const isRefreshing = ref(false)
 
 const saveCredentials = () => {
   if (!inputUrl.value.trim() || !inputKey.value.trim()) {
@@ -140,23 +135,17 @@ const clearCredentials = () => {
   updateSupabaseCredentials('', '')
 }
 
-const handleSeedSupabase = async () => {
-  isSeeding.value = true
+const handleRefreshData = async () => {
+  isRefreshing.value = true
   try {
-    await seedSupabaseData()
-    success('¡Tablas de Supabase pobladas con éxito con los datos simulados!')
+    await initDataService()
+    success('¡Datos sincronizados exitosamente con Supabase!')
     emit('close')
   } catch (err) {
-    error('Error al poblar Supabase: ' + err.message)
+    error('Error al sincronizar: ' + err.message)
   } finally {
-    isSeeding.value = false
+    isRefreshing.value = false
   }
-}
-
-const handleResetLocal = () => {
-  resetToMockData()
-  info('Datos locales restablecidos al estado inicial del informe técnico.')
-  emit('close')
 }
 </script>
 
@@ -167,14 +156,6 @@ const handleResetLocal = () => {
 
 .modal-subtitle {
   font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
   color: var(--text-muted);
 }
 

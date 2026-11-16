@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 // Intentar leer las variables desde .env de Vite o desde localStorage (para configuración en caliente)
 const envUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || ''
 
 const storedUrl = localStorage.getItem('preco_supabase_url') || ''
 const storedKey = localStorage.getItem('preco_supabase_key') || ''

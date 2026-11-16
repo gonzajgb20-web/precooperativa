@@ -2,14 +2,14 @@
   <div class="assembly-view">
     <div class="view-header">
       <div>
-        <h1 class="view-title">Asamblea y Registros Institucionales</h1>
-        <p class="view-subtitle">Libros oficiales rubricados, Actas del Consejo, Libro Diario y Padrón Cooperativo (Pantalla 7)</p>
+        <h1 class="view-title">Asamblea y Registros</h1>
+        <p class="view-subtitle">Libro diario contable, actas oficiales y padrón de asociados.</p>
       </div>
 
-      <!-- Botón de Cierre del Ejercicio (31 de Octubre) -->
+      <!-- Botón de Cierre del Ejercicio -->
       <button @click="showYearEndModal = true" class="btn btn-emerald btn-lg-glow">
         <AppIcon name="calendar" :size="16" />
-        <span>Cierre del ejercicio (31 de Octubre)</span>
+        <span>Cierre de Ejercicio</span>
       </button>
     </div>
 
@@ -22,7 +22,7 @@
           <div class="card-title-row">
             <div class="title-with-badge">
               <h2 class="sub-title">Actas Rubricadas</h2>
-              <span class="badge badge-mock">LIBRO OFICIAL</span>
+              <span class="badge badge-hardware">LIBRO OFICIAL</span>
             </div>
             <button 
               v-if="canManageMinutes" 
@@ -59,7 +59,7 @@
           <div class="card-title-row">
             <div class="title-with-badge">
               <h2 class="sub-title">Libro Diario de Ingresos y Egresos</h2>
-              <span class="badge badge-mock">SUPERVISIÓN TESORERÍA</span>
+              <span class="badge badge-emerald">SUPERVISIÓN TESORERÍA</span>
             </div>
             <button 
               v-if="canManageLedger" 
@@ -75,15 +75,15 @@
           <div class="ledger-stats-banner">
             <div class="stat-mini">
               <span>Ingresos Totales:</span>
-              <strong class="text-success">$ {{ totalIncome.toLocaleString() }}</strong>
+              <strong class="text-success">$ {{ formatCurrency(totalIncome) }}</strong>
             </div>
             <div class="stat-mini">
               <span>Egresos en Repuestos:</span>
-              <strong class="text-danger">- $ {{ totalExpense.toLocaleString() }}</strong>
+              <strong class="text-danger">- $ {{ formatCurrency(totalExpense) }}</strong>
             </div>
             <div class="stat-mini">
               <span>Saldo en Caja:</span>
-              <strong class="text-primary">$ {{ (totalIncome - totalExpense).toLocaleString() }}</strong>
+              <strong class="text-primary">$ {{ formatCurrency(totalIncome - totalExpense) }}</strong>
             </div>
           </div>
 
@@ -113,7 +113,7 @@
                   </td>
                   <td class="font-mono text-dim">{{ asiento.comprobante || 'S/N' }}</td>
                   <td class="font-bold" :class="asiento.tipo === 'Ingreso' ? 'text-success' : 'text-danger'">
-                    {{ asiento.tipo === 'Ingreso' ? '+' : '-' }} ${{ Number(asiento.monto).toLocaleString() }}
+                    {{ asiento.tipo === 'Ingreso' ? '+' : '-' }} ${{ formatCurrency(asiento.monto) }}
                   </td>
                   <td class="text-sm">{{ asiento.registrado_por }}</td>
                 </tr>
@@ -223,18 +223,18 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3 class="modal-title">Cargar Nueva Acta al Libro Oficial</h3>
-          <button class="close-btn" @click="showNewMinuteModal = false">
-            <AppIcon name="x" :size="18" />
+          <button class="close-btn" @click="showNewMinuteModal = false" aria-label="Cerrar modal">
+            <AppIcon name="x" :size="16" />
           </button>
         </div>
         <form @submit.prevent="handleCreateMinute" class="modal-body">
           <div class="form-group">
             <label class="form-label">Tipo de Acta</label>
-            <select v-model="newMinute.tipo" class="form-select">
-              <option value="Asamblea Ordinaria">Asamblea Ordinaria</option>
-              <option value="Asamblea Extraordinaria">Asamblea Extraordinaria</option>
-              <option value="Consejo de Administración">Consejo de Administración</option>
-            </select>
+            <AppCombobox 
+              v-model="newMinute.tipo" 
+              :options="minuteTypeOptions" 
+              placeholder="Seleccionar tipo de acta..."
+            />
           </div>
           <div class="form-group">
             <label class="form-label">Título del Acta *</label>
@@ -261,16 +261,19 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3 class="modal-title">Asentar Movimiento en Libro Diario</h3>
-          <button class="close-btn" @click="showNewLedgerModal = false">✕</button>
+          <button class="close-btn" @click="showNewLedgerModal = false" aria-label="Cerrar modal">
+            <AppIcon name="x" :size="16" />
+          </button>
         </div>
         <form @submit.prevent="handleCreateLedger" class="modal-body">
           <div class="form-row-2">
             <div class="form-group">
               <label class="form-label">Tipo de Movimiento</label>
-              <select v-model="newLedger.tipo" class="form-select">
-                <option value="Ingreso">Ingreso (+)</option>
-                <option value="Egreso">Egreso (-)</option>
-              </select>
+              <AppCombobox 
+                v-model="newLedger.tipo" 
+                :options="ledgerTypeOptions" 
+                placeholder="Tipo..."
+              />
             </div>
             <div class="form-group">
               <label class="form-label">Monto ($) *</label>
@@ -284,13 +287,11 @@
           <div class="form-row-2">
             <div class="form-group">
               <label class="form-label">Categoría</label>
-              <select v-model="newLedger.categoria" class="form-select">
-                <option value="Compra de repuestos">Compra de repuestos</option>
-                <option value="Herramientas">Herramientas</option>
-                <option value="Aporte cooperativo">Aporte cooperativo</option>
-                <option value="Donación escolar">Donación escolar</option>
-                <option value="Gastos operativos">Gastos operativos</option>
-              </select>
+              <AppCombobox 
+                v-model="newLedger.categoria" 
+                :options="ledgerCategoryOptions" 
+                placeholder="Categoría..."
+              />
             </div>
             <div class="form-group">
               <label class="form-label">Nº Factura / Comprobante</label>
@@ -314,13 +315,32 @@ import { useData } from '../services/dataService'
 import { useToast } from '../composables/useToast'
 import YearEndModal from '../components/YearEndModal.vue'
 
-const { currentUser, canManageMinutes, canManageLedger } = useAuth()
+const { currentUser, userProfile, canManageMinutes, canManageLedger } = useAuth()
 const { minutes, ledger, associates, addMinute, addLedgerEntry } = useData()
 const { success, error } = useToast()
 
 const showYearEndModal = ref(false)
 const showNewMinuteModal = ref(false)
 const showNewLedgerModal = ref(false)
+
+const minuteTypeOptions = [
+  { value: 'Asamblea Ordinaria', label: 'Asamblea Ordinaria', icon: 'building', hint: 'Aprobación de balances y memoria anual' },
+  { value: 'Asamblea Extraordinaria', label: 'Asamblea Extraordinaria', icon: 'file-text', hint: 'Modificación de estatutos o temas urgentes' },
+  { value: 'Consejo de Administración', label: 'Consejo de Administración', icon: 'shield', hint: 'Reuniones de coordinación ejecutiva' }
+]
+
+const ledgerTypeOptions = [
+  { value: 'Ingreso', label: 'Ingreso (+)', icon: 'plus', hint: 'Aportes, donaciones y cobranzas' },
+  { value: 'Egreso', label: 'Egreso (-)', icon: 'wrench', hint: 'Compra de repuestos e insumos' }
+]
+
+const ledgerCategoryOptions = [
+  { value: 'Compra de repuestos', label: 'Compra de repuestos', icon: 'wrench' },
+  { value: 'Herramientas', label: 'Herramientas', icon: 'wrench' },
+  { value: 'Aporte cooperativo', label: 'Aporte cooperativo', icon: 'dollar' },
+  { value: 'Donación escolar', label: 'Donación escolar', icon: 'building' },
+  { value: 'Gastos operativos', label: 'Gastos operativos', icon: 'clipboard' }
+]
 
 const newMinute = reactive({
   tipo: 'Asamblea Ordinaria',
@@ -337,17 +357,22 @@ const newLedger = reactive({
   comprobante: ''
 })
 
+const formatCurrency = (val) => {
+  const num = Number(val)
+  return isNaN(num) ? '0' : num.toLocaleString('es-AR')
+}
+
 const totalIncome = computed(() => {
-  return ledger.value.filter(a => a.tipo === 'Ingreso').reduce((acc, curr) => acc + Number(curr.monto), 0)
+  return (ledger.value || []).filter(a => a?.tipo === 'Ingreso').reduce((acc, curr) => acc + (Number(curr?.monto) || 0), 0)
 })
 
 const totalExpense = computed(() => {
-  return ledger.value.filter(a => a.tipo === 'Egreso').reduce((acc, curr) => acc + Number(curr.monto), 0)
+  return (ledger.value || []).filter(a => a?.tipo === 'Egreso').reduce((acc, curr) => acc + (Number(curr?.monto) || 0), 0)
 })
 
 const handleCreateMinute = async () => {
   try {
-    await addMinute(newMinute, currentUser.value)
+    await addMinute(newMinute, userProfile.value || currentUser.value)
     success('Acta asentada y rubricada en el libro digital.')
     showNewMinuteModal.value = false
     newMinute.titulo = ''
@@ -359,7 +384,7 @@ const handleCreateMinute = async () => {
 
 const handleCreateLedger = async () => {
   try {
-    await addLedgerEntry(newLedger, currentUser.value)
+    await addLedgerEntry(newLedger, userProfile.value || currentUser.value)
     success('Asiento contable registrado en el Libro Diario.')
     showNewLedgerModal.value = false
     newLedger.concepto = ''

@@ -1,31 +1,41 @@
 <template>
   <div class="workshop-view">
+    <!-- Encabezado directo y conciso (Emil Kowalski) -->
     <div class="view-header">
       <div class="header-titles">
-        <h1 class="view-title">Bandejas del taller</h1>
-        <p class="view-subtitle">Tablero Kanban y seguimiento del ciclo de vida de los equipos</p>
+        <h1 class="view-title">Tablero de Taller</h1>
+        <p class="view-subtitle">Seguimiento y gestión del flujo técnico de órdenes de trabajo.</p>
       </div>
 
-      <!-- Barra de herramientas: Búsqueda y Filtros (Punto 9) -->
-      <div class="toolbar-wrap">
-        <!-- Búsqueda rápida -->
+      <div class="header-actions">
+        <router-link to="/nuevo-pedido" class="btn btn-primary new-order-btn">
+          <AppIcon name="plus" :size="16" />
+          <span>Nuevo Pedido</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros Principales -->
+    <div class="toolbar-card">
+      <div class="toolbar-primary-row">
+        <!-- Input de búsqueda -->
         <div class="search-input-wrap">
           <span class="search-icon">
-            <AppIcon name="search" :size="15" />
+            <AppIcon name="search" :size="16" />
           </span>
           <input 
             type="text" 
             v-model="searchQuery" 
-            placeholder="Buscar por equipo, aula, código OT o falla..."
+            placeholder="Buscar por equipo, aula, código OT o problema reportado..."
             class="search-input"
           />
-          <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn">
-            <AppIcon name="x" :size="12" />
+          <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn" title="Limpiar búsqueda">
+            <AppIcon name="x" :size="13" />
           </button>
         </div>
 
-        <!-- Filtro de Comisión -->
-        <div class="filter-pills">
+        <!-- Filtro por Comisión Técnica -->
+        <div class="commission-pills">
           <button 
             @click="selectedCommission = 'all'" 
             class="pill-btn" 
@@ -58,195 +68,210 @@
           :class="{ active: onlyMine }"
         >
           <AppIcon :name="onlyMine ? 'check' : 'user'" :size="14" />
-          <span>{{ onlyMine ? 'Mostrando mis pedidos' : 'Solo mis pedidos' }}</span>
+          <span>{{ onlyMine ? 'Mis pedidos asignados' : 'Solo mis pedidos' }}</span>
+        </button>
+      </div>
+
+      <!-- Pestañas de Filtro por Estado del Proceso -->
+      <div class="status-tabs-row">
+        <button 
+          v-for="tab in statusTabs" 
+          :key="tab.id"
+          class="status-tab-btn"
+          :class="{ active: selectedStatus === tab.id }"
+          @click="selectedStatus = tab.id"
+        >
+          <span class="tab-label">{{ tab.label }}</span>
+          <span class="tab-counter">{{ getStatusCount(tab.id) }}</span>
         </button>
       </div>
     </div>
 
-    <!-- Layout Dual: Columnas Kanban + Panel de Detalle Derecho (Pantalla 4 del PDF) -->
-    <div class="kanban-layout-grid">
-      <!-- Tablero de 5 Bandejas -->
-      <div class="kanban-columns-container">
+    <!-- Listado de Pedidos en Formato Tarjetas -->
+    <div class="orders-section">
+      <div class="section-meta">
+        <span class="results-text">
+          Mostrando <strong>{{ filteredOrders.length }}</strong> {{ filteredOrders.length === 1 ? 'pedido' : 'pedidos' }}
+        </span>
+      </div>
+
+      <!-- Grilla de Tarjetas -->
+      <div v-if="filteredOrders.length > 0" class="orders-cards-grid">
         <div 
-          v-for="col in kanbanColumns" 
-          :key="col.status" 
-          class="kanban-column"
+          v-for="order in filteredOrders" 
+          :key="order.id"
+          class="order-card"
+          @click="openOrderProcess(order)"
+          tabindex="0"
+          @keydown.enter="openOrderProcess(order)"
         >
-          <div class="column-header" :class="col.colorClass">
-            <div class="col-title-wrap">
-              <AppIcon :name="col.icon" :size="15" />
-              <span class="col-title">{{ col.title }}</span>
-            </div>
-            <span class="col-counter">{{ getColumnOrders(col.status).length }}</span>
-          </div>
-
-          <div class="cards-scroll-area">
-            <div 
-              v-for="order in getColumnOrders(col.status)" 
-              :key="order.id"
-              class="kanban-card"
-              :class="{ 
-                selected: activeOrder && activeOrder.id === order.id,
-                'cancelled-card': order.estado === 'Cancelado'
-              }"
-              @click="selectOrder(order)"
-            >
-              <div class="card-head">
-                <span class="ot-code">{{ order.codigo_ot }}</span>
-                <span v-if="order.es_dato_prueba" class="badge-mini-mock">DATO DE PRUEBA</span>
-                <span class="priority-dot" :class="order.prioridad.toLowerCase()" :title="'Prioridad ' + order.prioridad"></span>
-              </div>
-
-              <h4 class="card-equipment">{{ order.equipo }}</h4>
-              <span class="card-location">
-                <AppIcon name="map-pin" :size="11" /> {{ order.aula_laboratorio }}
+          <!-- Cabecera de la tarjeta -->
+          <div class="card-head">
+            <div class="code-and-comision">
+              <span class="ot-code">{{ order.codigo_ot }}</span>
+              <span class="badge" :class="order.comision_responsable === 'Hardware' ? 'badge-hardware' : 'badge-software'">
+                {{ order.comision_responsable }}
               </span>
-
-              <p class="card-desc-snippet">{{ order.descripcion_falla }}</p>
-
-              <div class="card-footer">
-                <span class="badge" :class="order.comision_responsable === 'Hardware' ? 'badge-hardware' : 'badge-software'">
-                  {{ order.comision_responsable }}
-                </span>
-                <span class="date-snippet">{{ formatDate(order.fecha_solicitud) }}</span>
-              </div>
             </div>
-
-            <!-- Empty state por columna -->
-            <div v-if="getColumnOrders(col.status).length === 0" class="empty-column-msg">
-              Sin equipos en esta bandeja
+            <div class="card-badges-right">
+              <span class="badge" :class="getStatusClass(order.estado)">
+                {{ order.estado }}
+              </span>
+              <span class="priority-dot" :class="(order.prioridad || 'media').toLowerCase()" :title="'Prioridad ' + (order.prioridad || 'Media')"></span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Panel Lateral Derecho de Detalle (Fiel a Pantalla 4) -->
-      <div class="detail-sidebar" v-if="activeOrder">
-        <div class="detail-sticky-card">
-          <div class="sidebar-top">
-            <div class="sidebar-ot-badge">{{ activeOrder.codigo_ot }}</div>
-            <span class="badge" :class="getStatusClass(activeOrder.estado)">
-              {{ activeOrder.estado }}
+          <!-- Título y Ubicación -->
+          <h3 class="card-title">{{ order.equipo }}</h3>
+          <div class="card-meta">
+            <span class="meta-item">
+              <AppIcon name="map-pin" :size="12" />
+              <span>{{ order.aula_laboratorio }}</span>
+            </span>
+            <span class="meta-separator">•</span>
+            <span class="meta-item">
+              <AppIcon name="user" :size="12" />
+              <span>{{ order.solicitante_nombre }}</span>
             </span>
           </div>
 
-          <h2 class="sidebar-title">{{ activeOrder.equipo }}</h2>
-          <div class="sidebar-meta-row">
-            <span><AppIcon name="map-pin" :size="12" /> {{ activeOrder.aula_laboratorio }}</span>
-            <span><AppIcon name="user" :size="12" /> Solicitó: {{ activeOrder.solicitante_nombre }}</span>
+          <!-- Síntoma o falla reportada -->
+          <p class="card-desc">{{ order.descripcion_falla }}</p>
+
+          <!-- Barra de Proceso de 5 Etapas -->
+          <div class="card-pipeline-tracker">
+            <div class="tracker-header">
+              <span class="step-counter">
+                Paso {{ getStageStep(order.estado) }} de 5:
+                <strong>{{ getStageTitle(order.estado) }}</strong>
+              </span>
+              <span class="step-progress-percent">
+                {{ getStageProgressPercent(order.estado) }}%
+              </span>
+            </div>
+            <div class="tracker-bar">
+              <div 
+                v-for="(st, idx) in processStages" 
+                :key="st.id" 
+                class="tracker-segment"
+                :class="{
+                  completed: idx + 1 < getStageStep(order.estado),
+                  active: idx + 1 === getStageStep(order.estado)
+                }"
+              ></div>
+            </div>
           </div>
 
-          <div class="sidebar-tags">
-            <span class="badge" :class="activeOrder.comision_responsable === 'Hardware' ? 'badge-hardware' : 'badge-software'">
-              {{ activeOrder.comision_responsable }}
-            </span>
-            <span class="priority-indicator" :class="activeOrder.prioridad.toLowerCase()">
-              Prioridad {{ activeOrder.prioridad }}
-            </span>
-            <span v-if="activeOrder.es_dato_prueba" class="badge badge-mock">DATO DE PRUEBA</span>
-          </div>
+          <!-- Pie de Tarjeta -->
+          <div class="card-foot">
+            <div class="foot-info">
+              <span class="foot-date">{{ formatDate(order.fecha_solicitud) }}</span>
+              <span class="foot-tech">
+                <AppIcon name="user-check" :size="12" />
+                <span>{{ order.tecnico_asignado_nombre ? order.tecnico_asignado_nombre.split(' ')[0] : 'Sin técnico' }}</span>
+              </span>
+            </div>
 
-          <div class="sidebar-section">
-            <h5 class="sec-label">Descripción de la falla:</h5>
-            <p class="sec-text">{{ activeOrder.descripcion_falla }}</p>
-          </div>
-
-          <div v-if="activeOrder.diagnostico" class="sidebar-section highlight-sec">
-            <h5 class="sec-label">Diagnóstico de la comisión:</h5>
-            <p class="sec-text">{{ activeOrder.diagnostico }}</p>
-          </div>
-
-          <div v-if="activeOrder.trabajo_realizado" class="sidebar-section highlight-sec">
-            <h5 class="sec-label">Trabajo / Optimización:</h5>
-            <p class="sec-text">{{ activeOrder.trabajo_realizado }}</p>
-          </div>
-
-          <!-- Botón de apertura de modal completo de gestión -->
-          <div class="sidebar-actions">
-            <button @click="isDetailModalOpen = true" class="btn btn-primary btn-block">
-              <span>Gestionar o avanzar estado</span>
-              <AppIcon name="arrow-right" :size="14" />
-            </button>
-          </div>
-
-          <!-- Mini línea de trazabilidad -->
-          <div class="sidebar-mini-history">
-            <h5 class="sec-label">Último movimiento registrado:</h5>
-            <div v-if="activeOrder.historial && activeOrder.historial.length > 0" class="mini-hist-entry">
-              <strong>{{ activeOrder.historial[activeOrder.historial.length - 1].estado }}</strong>
-              <span>Por {{ activeOrder.historial[activeOrder.historial.length - 1].responsable }}</span>
-              <small>{{ activeOrder.historial[activeOrder.historial.length - 1].fecha }}</small>
+            <div class="view-process-pill">
+              <span>Ver proceso</span>
+              <AppIcon name="arrow-right" :size="13" />
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Panel placeholder cuando no hay selección -->
-      <div v-else class="detail-sidebar detail-empty-placeholder">
-        <div class="empty-placeholder-card">
-          <AppIcon name="clipboard" :size="36" color="#94a3b8" class="placeholder-icon" />
-          <h4>Seleccioná una orden</h4>
-          <p>Hacé clic en cualquier tarjeta del tablero para ver su trazabilidad, diagnóstico y opciones operativas.</p>
+      <!-- Estado Vacío amigable con llamada a la acción (Emil Kowalski) -->
+      <div v-else class="empty-orders-card">
+        <div class="empty-icon-wrap">
+          <AppIcon name="inbox" :size="38" />
+        </div>
+        <h4 class="empty-title">No hay pedidos para este filtro</h4>
+        <p class="empty-desc">Probá cambiando el estado seleccionado o limpiando los términos de búsqueda.</p>
+        <div class="empty-actions">
+          <button v-if="hasActiveFilters" @click="resetFilters" class="btn btn-secondary btn-sm">
+            Limpiar filtros
+          </button>
+          <router-link to="/nuevo-pedido" class="btn btn-primary btn-sm">
+            <AppIcon name="plus" :size="14" />
+            <span>Crear nuevo pedido</span>
+          </router-link>
         </div>
       </div>
     </div>
-
-    <!-- Modal completo de gestión operativa -->
-    <OrderDetailModal 
-      v-if="isDetailModalOpen && activeOrder"
-      :order="activeOrder"
-      @close="isDetailModalOpen = false"
-      @updated="refreshActiveOrder"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useData } from '../services/dataService'
-import OrderDetailModal from '../components/OrderDetailModal.vue'
 
-const { currentUser } = useAuth()
+const router = useRouter()
+const { userProfile } = useAuth()
 const { orders } = useData()
 
 const searchQuery = ref('')
 const selectedCommission = ref('all')
+const selectedStatus = ref('all')
 const onlyMine = ref(false)
-const activeOrder = ref(null)
-const isDetailModalOpen = ref(false)
 
-const kanbanColumns = [
-  { status: 'Recibido', title: 'Recibido', icon: 'inbox', colorClass: 'col-recibido' },
-  { status: 'Diagnóstico', title: 'Diagnóstico', icon: 'search', colorClass: 'col-diagnostico' },
-  { status: 'Reparar u optimizar', title: 'En reparación', icon: 'wrench', colorClass: 'col-reparar' },
-  { status: 'Probado', title: 'Probado', icon: 'flask', colorClass: 'col-probado' },
-  { status: 'Entregado', title: 'Entregado', icon: 'check-circle', colorClass: 'col-entregado' }
+// 5 Etapas del flujo de trabajo
+const processStages = [
+  { id: 'Recibido', step: 1, label: 'Recepción' },
+  { id: 'Diagnóstico', step: 2, label: 'Diagnóstico' },
+  { id: 'Reparar u optimizar', step: 3, label: 'Reparación' },
+  { id: 'Probado', step: 4, label: 'Control Calidad' },
+  { id: 'Entregado', step: 5, label: 'Entrega Conforme' }
 ]
 
+const statusTabs = [
+  { id: 'all', label: 'Todas' },
+  { id: 'Recibido', label: 'Recibido' },
+  { id: 'Diagnóstico', label: 'Diagnóstico' },
+  { id: 'Reparar u optimizar', label: 'En reparación' },
+  { id: 'Probado', label: 'Probado' },
+  { id: 'Entregado', label: 'Entregado' }
+]
+
+// Conteo rápido por estado
+const getStatusCount = (statusId) => {
+  if (statusId === 'all') return orders.value.length
+  return orders.value.filter(o => o.estado === statusId).length
+}
+
+// Filtro completo reactivo
 const filteredOrders = computed(() => {
   return orders.value.filter(o => {
-    // Filtro por texto
+    // Filtro por Estado
+    if (selectedStatus.value !== 'all') {
+      if (o.estado !== selectedStatus.value) return false
+    }
+
+    // Filtro por Búsqueda de texto
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase()
       const match = (
-        o.equipo.toLowerCase().includes(q) ||
-        o.codigo_ot.toLowerCase().includes(q) ||
-        o.aula_laboratorio.toLowerCase().includes(q) ||
-        o.descripcion_falla.toLowerCase().includes(q)
+        (o.equipo || '').toLowerCase().includes(q) ||
+        (o.codigo_ot || '').toLowerCase().includes(q) ||
+        (o.aula_laboratorio || '').toLowerCase().includes(q) ||
+        (o.descripcion_falla || '').toLowerCase().includes(q) ||
+        (o.solicitante_nombre || '').toLowerCase().includes(q)
       )
       if (!match) return false
     }
 
-    // Filtro de comisión
+    // Filtro por Comisión
     if (selectedCommission.value !== 'all') {
       if (o.comision_responsable !== selectedCommission.value) return false
     }
 
     // Filtro solo mis pedidos
     if (onlyMine.value) {
-      const isMyRequest = o.solicitante_id === currentUser.value.id || o.solicitante_nombre.includes(currentUser.value.nombre_completo.split(' ')[0])
-      const isMyAssigned = o.tecnico_asignado_id === currentUser.value.id || (o.tecnico_asignado_nombre && o.tecnico_asignado_nombre.includes(currentUser.value.nombre_completo.split(' ')[0]))
+      const uId = userProfile.value?.id || ''
+      const uName = userProfile.value?.nombre_completo ? userProfile.value.nombre_completo.split(' ')[0] : ''
+      const isMyRequest = (uId && o.solicitante_id === uId) || (uName && o.solicitante_nombre && o.solicitante_nombre.includes(uName))
+      const isMyAssigned = (uId && o.tecnico_asignado_id === uId) || (uName && o.tecnico_asignado_nombre && o.tecnico_asignado_nombre.includes(uName))
       if (!isMyRequest && !isMyAssigned) return false
     }
 
@@ -254,29 +279,31 @@ const filteredOrders = computed(() => {
   })
 })
 
-const getColumnOrders = (status) => {
-  return filteredOrders.value.filter(o => o.estado === status)
+const hasActiveFilters = computed(() => {
+  return searchQuery.value.trim() !== '' || selectedCommission.value !== 'all' || selectedStatus.value !== 'all' || onlyMine.value
+})
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedCommission.value = 'all'
+  selectedStatus.value = 'all'
+  onlyMine.value = false
 }
 
-const selectOrder = (order) => {
-  activeOrder.value = order
+// Helpers de proceso
+const getStageStep = (estado) => {
+  const match = processStages.find(s => s.id === estado)
+  return match ? match.step : 1
 }
 
-const refreshActiveOrder = () => {
-  if (activeOrder.value) {
-    const updated = orders.value.find(o => o.id === activeOrder.value.id)
-    if (updated) activeOrder.value = updated
-  }
+const getStageTitle = (estado) => {
+  const match = processStages.find(s => s.id === estado)
+  return match ? match.label : estado
 }
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
-  } catch {
-    return ''
-  }
+const getStageProgressPercent = (estado) => {
+  const step = getStageStep(estado)
+  return Math.round((step / 5) * 100)
 }
 
 const getStatusClass = (st) => {
@@ -291,34 +318,79 @@ const getStatusClass = (st) => {
   }
 }
 
-onMounted(() => {
-  // Preseleccionar la primera orden de prueba si existe
-  if (orders.value.length > 0) {
-    activeOrder.value = orders.value[0]
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
+  } catch {
+    return ''
   }
-})
+}
+
+// Navegación al apartado dedicado de proceso
+const openOrderProcess = (order) => {
+  router.push(`/taller/pedido/${order.id}`)
+}
 </script>
 
 <style scoped>
+.workshop-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 3rem;
+}
+
+/* Header */
 .view-header {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .view-title {
-  font-size: 2rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  line-height: 1.2;
 }
 
 .view-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
+  margin-top: 0.2rem;
 }
 
-.toolbar-wrap {
+.new-order-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Barra de herramientas */
+.toolbar-card {
+  background: white;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.toolbar-primary-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 1.25rem;
   flex-wrap: wrap;
 }
 
@@ -327,27 +399,32 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex: 1;
-  min-width: 260px;
+  min-width: 280px;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
-  font-size: 0.85rem;
+  left: 0.85rem;
+  color: var(--text-dim);
   pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.55rem 2rem 0.55rem 2.25rem;
+  padding: 0.55rem 2.2rem 0.55rem 2.35rem;
   border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  background: white;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  color: var(--text-main);
+  transition: all var(--transition-fast);
 }
 
 .search-input:focus {
   outline: none;
+  background: white;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
 }
@@ -355,21 +432,36 @@ onMounted(() => {
 .clear-btn {
   position: absolute;
   right: 0.75rem;
-  background: transparent;
+  background: #e2e8f0;
   border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--text-muted);
+  transition: background var(--transition-fast);
 }
 
-.filter-pills {
+.clear-btn:hover {
+  background: #cbd5e1;
+  color: var(--text-main);
+}
+
+.commission-pills {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.25rem;
   background: #f1f5f9;
   padding: 0.25rem;
   border-radius: var(--radius-full);
 }
 
 .pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-full);
   border: none;
@@ -381,6 +473,10 @@ onMounted(() => {
   transition: all var(--transition-fast);
 }
 
+.pill-btn:hover {
+  color: var(--text-main);
+}
+
 .pill-btn.active {
   background: white;
   color: var(--color-primary);
@@ -388,7 +484,10 @@ onMounted(() => {
 }
 
 .toggle-mine-btn {
-  padding: 0.45rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--border-subtle);
   background: white;
@@ -399,318 +498,334 @@ onMounted(() => {
   transition: all var(--transition-fast);
 }
 
+.toggle-mine-btn:hover {
+  border-color: var(--border-strong);
+  background: #f8fafc;
+}
+
 .toggle-mine-btn.active {
   background: var(--color-amber-light);
   border-color: var(--color-amber-border);
   color: #92400e;
 }
 
-/* Kanban Layout */
-.kanban-layout-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  align-items: start;
+/* Pestañas de estado */
+.status-tabs-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.75rem;
 }
 
-@media (min-width: 1100px) {
-  .kanban-layout-grid {
-    grid-template-columns: 1fr 360px;
-  }
+.status-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: #f8fafc;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
 }
 
-.kanban-columns-container {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .kanban-columns-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .kanban-columns-container {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-.kanban-column {
+.status-tab-btn:hover {
   background: #f1f5f9;
-  border-radius: var(--radius-lg);
-  padding: 0.75rem;
+  color: var(--text-main);
+}
+
+.status-tab-btn.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+.tab-counter {
+  background: rgba(148, 163, 184, 0.2);
+  color: inherit;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+}
+
+/* Sección de Tarjetas */
+.orders-section {
   display: flex;
   flex-direction: column;
-  min-height: 480px;
+  gap: 0.85rem;
 }
 
-.column-header {
+.section-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.4rem 0.6rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 0.75rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  background: white;
-  box-shadow: var(--shadow-sm);
 }
 
-.col-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.results-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
-.col-counter {
-  background: #e2e8f0;
-  padding: 0.1rem 0.45rem;
-  border-radius: var(--radius-full);
-  font-size: 0.72rem;
+.orders-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.15rem;
 }
 
-.cards-scroll-area {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.kanban-card {
+/* Tarjeta de Orden (Artesanía Emil Kowalski) */
+.order-card {
   background: white;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.85rem;
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
   cursor: pointer;
-  transition: all var(--transition-fast);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), 
+              box-shadow var(--transition-fast), 
+              border-color var(--transition-fast);
+  position: relative;
+  outline: none;
 }
 
-.kanban-card:hover {
+.order-card:hover {
   border-color: var(--color-primary-border);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-.kanban-card.selected {
-  border: 2px solid var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+.order-card:active {
+  transform: scale(0.985);
+}
+
+.order-card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.25);
+  border-color: var(--color-primary);
 }
 
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.65rem;
+  gap: 0.5rem;
+}
+
+.code-and-comision {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .ot-code {
   font-family: monospace;
   font-weight: 800;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   background: #0f172a;
   color: white;
-  padding: 0.1rem 0.35rem;
+  padding: 0.15rem 0.45rem;
   border-radius: var(--radius-sm);
 }
 
-.badge-mini-mock {
-  font-size: 0.6rem;
-  font-weight: 800;
-  background: #fef08a;
-  color: #713f12;
-  padding: 0.05rem 0.3rem;
-  border-radius: var(--radius-sm);
-  border: 1px dashed #ca8a04;
+.card-badges-right {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .priority-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.priority-dot.alta { background: var(--color-danger); }
-.priority-dot.media { background: var(--color-amber); }
-.priority-dot.baja { background: var(--color-success); }
+.priority-dot.alta { background: var(--color-danger); box-shadow: 0 0 0 2px var(--color-danger-light); }
+.priority-dot.media { background: var(--color-amber); box-shadow: 0 0 0 2px var(--color-amber-light); }
+.priority-dot.baja { background: var(--color-success); box-shadow: 0 0 0 2px var(--color-success-light); }
 
-.card-equipment {
-  font-size: 0.875rem;
+.card-title {
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 0.2rem;
   line-height: 1.3;
+  margin-bottom: 0.35rem;
 }
 
-.card-location {
-  font-size: 0.72rem;
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
 }
 
-.card-desc-snippet {
-  font-size: 0.75rem;
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meta-separator {
+  color: var(--text-dim);
+}
+
+.card-desc {
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.35;
-  margin-bottom: 0.6rem;
+  line-height: 1.4;
+  margin-bottom: 0.85rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1;
 }
 
-.card-footer {
+/* Indicador de barra de progreso de 5 etapas */
+.card-pipeline-tracker {
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.tracker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.step-counter {
+  color: var(--text-muted);
+}
+
+.step-counter strong {
+  color: var(--color-primary);
+  margin-left: 0.2rem;
+}
+
+.step-progress-percent {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.72rem;
+}
+
+.tracker-bar {
+  display: flex;
+  gap: 4px;
+  height: 5px;
+}
+
+.tracker-segment {
+  flex: 1;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  transition: background var(--transition-fast);
+}
+
+.tracker-segment.completed {
+  background: var(--color-success);
+}
+
+.tracker-segment.active {
+  background: var(--color-primary);
+  box-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+}
+
+/* Pie de tarjeta */
+.card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top: 1px dashed var(--border-subtle);
-  padding-top: 0.45rem;
+  padding-top: 0.75rem;
+  gap: 0.5rem;
 }
 
-.date-snippet {
-  font-size: 0.68rem;
-  color: var(--text-dim);
-}
-
-.empty-column-msg {
-  text-align: center;
-  padding: 2rem 0.5rem;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  font-style: italic;
-}
-
-/* Detail Sidebar */
-.detail-sidebar {
-  display: none;
-}
-
-@media (min-width: 1100px) {
-  .detail-sidebar {
-    display: block;
-  }
-}
-
-.detail-sticky-card {
-  position: sticky;
-  top: 5rem;
-  background: white;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-}
-
-.sidebar-top {
+.foot-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.sidebar-ot-badge {
-  font-family: monospace;
-  font-weight: 800;
-  font-size: 1rem;
-  background: #0f172a;
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-}
-
-.sidebar-title {
-  font-size: 1.25rem;
-  margin-bottom: 0.35rem;
-}
-
-.sidebar-meta-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
-}
-
-.sidebar-tags {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.priority-indicator {
+  gap: 0.75rem;
   font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.priority-indicator.alta { color: var(--color-danger); }
-.priority-indicator.media { color: var(--color-amber); }
-.priority-indicator.baja { color: var(--color-success); }
-
-.sidebar-section {
-  background: #f8fafc;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 0.75rem;
-  border: 1px solid var(--border-subtle);
-}
-
-.highlight-sec {
-  background: #fffbeb;
-  border-color: #fef08a;
-}
-
-.sec-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.sec-text {
-  font-size: 0.8rem;
-  color: var(--text-main);
-  line-height: 1.35;
-}
-
-.sidebar-actions {
-  margin: 1.25rem 0;
-}
-
-.sidebar-mini-history {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 0.75rem;
-}
-
-.mini-hist-entry {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  font-size: 0.75rem;
-}
-
-.mini-hist-entry small {
   color: var(--text-dim);
 }
 
-.empty-placeholder-card {
-  background: #f8fafc;
+.foot-tech {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-muted);
+}
+
+.view-process-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  transition: transform var(--transition-fast);
+}
+
+.order-card:hover .view-process-pill {
+  transform: translateX(3px);
+}
+
+/* Estado Vacío */
+.empty-orders-card {
+  background: white;
   border: 2px dashed var(--border-subtle);
   border-radius: var(--radius-xl);
   padding: 3rem 1.5rem;
   text-align: center;
-  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
 }
 
-.placeholder-icon {
-  font-size: 2rem;
-  display: block;
-  margin-bottom: 0.5rem;
+.empty-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+
+.empty-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.empty-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 400px;
+}
+
+.empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
 }
 </style>

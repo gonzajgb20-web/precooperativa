@@ -1,27 +1,26 @@
 <template>
   <div class="home-view">
-    <!-- Banner de Bienvenida (Pantalla 1 del PDF) -->
+    <!-- Banner Principal -->
     <div class="hero-welcome-card">
       <div class="hero-left">
-        <span class="hero-pre-badge">Panel de la Precooperativa Escolar</span>
         <h1 class="hero-title">Hola, {{ userDisplayName }}</h1>
         <p class="hero-subtitle">
-          Hoy tenemos <strong>{{ activeOrdersCount }} equipos</strong> en el taller y 
-          <strong :class="{ 'text-alert': lowStockCount > 0 }">{{ lowStockCount }} repuestos</strong> por debajo del stock mínimo.
+          <span>{{ summaryOrdersText }}</span> y 
+          <span :class="{ 'text-alert': lowStockCount > 0 }">{{ summaryStockText }}</span>.
         </p>
         <div class="hero-actions">
           <router-link to="/nuevo-pedido" class="btn btn-primary">
             <AppIcon name="plus" :size="16" />
-            <span>Nuevo pedido</span>
+            <span>Nuevo Pedido</span>
           </router-link>
-          <router-link to="/taller" class="btn btn-secondary">
+          <router-link v-if="canAccessWorkshop" to="/taller" class="btn btn-secondary">
             <AppIcon name="wrench" :size="16" />
-            <span>Ver órdenes de trabajo</span>
+            <span>Ver Taller</span>
           </router-link>
         </div>
       </div>
 
-      <!-- Métricas destacadas en el hero -->
+      <!-- Métricas del taller -->
       <div class="hero-stats-badge-col">
         <div class="stat-pill-item">
           <span class="stat-number">{{ activeOrdersCount }}</span>
@@ -34,22 +33,22 @@
       </div>
     </div>
 
-    <!-- Componente: Recorrido de una tarea (Pantalla 1 del PDF) -->
+    <!-- Recorrido de una tarea -->
     <TaskJourney />
 
-    <!-- Sección: Órdenes de trabajo recientes -->
+    <!-- Sección: Pedidos recientes -->
     <div class="recent-orders-section">
       <div class="section-top-row">
         <div>
-          <h2 class="section-heading">Órdenes de trabajo</h2>
-          <p class="section-subtext">Seguimiento de pedidos técnicos activos en laboratorios y aulas</p>
+          <h2 class="section-heading">Pedidos Recientes</h2>
+          <p class="section-subtext">Últimos equipos ingresados para diagnóstico o reparación</p>
         </div>
-        <router-link to="/taller" class="view-all-link">
-          Ver todas las órdenes ({{ orders.length }}) →
+        <router-link v-if="canAccessWorkshop" to="/taller" class="view-all-link">
+          Ver todos los pedidos ({{ orders.length }}) →
         </router-link>
       </div>
 
-      <div class="orders-grid">
+      <div v-if="recentOrders.length > 0" class="orders-grid">
         <div 
           v-for="order in recentOrders" 
           :key="order.id"
@@ -58,7 +57,6 @@
         >
           <div class="order-top-row">
             <span class="ot-badge">{{ order.codigo_ot }}</span>
-            <span v-if="order.es_dato_prueba" class="badge badge-mock">DATO DE PRUEBA</span>
             <span class="badge" :class="order.comision_responsable === 'Hardware' ? 'badge-hardware' : 'badge-software'">
               {{ order.comision_responsable }}
             </span>
@@ -74,11 +72,17 @@
             <span class="badge" :class="getStatusClass(order.estado)">
               {{ order.estado }}
             </span>
-            <span class="priority-indicator" :class="order.prioridad.toLowerCase()">
-              Prioridad {{ order.prioridad }}
+            <span class="priority-indicator" :class="(order.prioridad || 'media').toLowerCase()">
+              Prioridad {{ order.prioridad || 'Media' }}
             </span>
           </div>
         </div>
+      </div>
+
+      <div v-else class="empty-orders-banner">
+        <AppIcon name="check-circle" :size="32" color="#94a3b8" />
+        <p>No hay pedidos activos en este momento.</p>
+        <router-link to="/nuevo-pedido" class="btn btn-primary btn-sm">Cargar Nuevo Pedido</router-link>
       </div>
     </div>
 
@@ -99,26 +103,35 @@ import { useData } from '../services/dataService'
 import TaskJourney from '../components/TaskJourney.vue'
 import OrderDetailModal from '../components/OrderDetailModal.vue'
 
-const { currentUser } = useAuth()
+const { userDisplayName, canAccessWorkshop } = useAuth()
 const { orders, inventory } = useData()
 
 const selectedOrder = ref(null)
 
-const userDisplayName = computed(() => {
-  if (currentUser.value.nombre_completo.includes('Aragón')) return 'Aragón'
-  return currentUser.value.nombre_completo.split(' ')[0]
-})
-
 const activeOrdersCount = computed(() => {
-  return orders.value.filter(o => o.estado !== 'Entregado' && o.estado !== 'Cancelado').length
+  return (orders.value || []).filter(o => o && o.estado !== 'Entregado' && o.estado !== 'Cancelado').length
 })
 
 const deliveredCount = computed(() => {
-  return orders.value.filter(o => o.estado === 'Entregado').length
+  return (orders.value || []).filter(o => o && o.estado === 'Entregado').length
 })
 
 const lowStockCount = computed(() => {
-  return inventory.value.filter(i => i.stock_actual <= i.stock_minimo).length
+  return (inventory.value || []).filter(i => (Number(i?.stock_actual) || 0) <= (Number(i?.stock_minimo) || 0)).length
+})
+
+const summaryOrdersText = computed(() => {
+  const count = activeOrdersCount.value
+  if (count === 0) return 'No hay pedidos activos en taller'
+  if (count === 1) return 'Hay 1 pedido activo en taller'
+  return `Hay ${count} pedidos activos en taller`
+})
+
+const summaryStockText = computed(() => {
+  const count = lowStockCount.value
+  if (count === 0) return 'el stock de repuestos está al día'
+  if (count === 1) return '1 repuesto con stock bajo'
+  return `${count} repuestos con stock bajo`
 })
 
 const recentOrders = computed(() => {
@@ -144,64 +157,45 @@ const getStatusClass = (st) => {
 
 <style scoped>
 .hero-welcome-card {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 60%, #fed7aa 100%);
-  border: 1px solid #fed7aa;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white;
   border-radius: var(--radius-xl);
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 2.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-lg);
+  flex-wrap: wrap;
   gap: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-welcome-card::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
-  pointer-events: none;
 }
 
 .hero-left {
-  max-width: 650px;
-  z-index: 1;
-}
-
-.hero-pre-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-primary);
-  letter-spacing: 0.05em;
-  margin-bottom: 0.4rem;
-  display: inline-block;
+  max-width: 600px;
 }
 
 .hero-title {
-  font-size: 2.25rem;
-  color: #7c2d12;
-  margin-bottom: 0.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
   font-size: 1rem;
-  color: #9a3412;
-  margin-bottom: 1.5rem;
-  line-height: 1.4;
+  color: #cbd5e1;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.hero-subtitle strong {
+  color: #ffffff;
 }
 
 .text-alert {
-  color: #b91c1c;
-  text-decoration: underline;
+  color: #fb923c !important;
+  font-weight: 600;
 }
 
 .hero-actions {
@@ -212,49 +206,46 @@ const getStatusClass = (st) => {
 
 .hero-stats-badge-col {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  z-index: 1;
+  gap: 1rem;
 }
 
 .stat-pill-item {
-  background: white;
-  border: 1.5px solid #fdba74;
-  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: var(--shadow-sm);
-  min-width: 100px;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  min-width: 120px;
+}
+
+.stat-pill-item.pill-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
 .stat-number {
-  font-size: 1.8rem;
+  font-size: 2.4rem;
   font-weight: 800;
-  color: var(--color-primary);
+  display: block;
   line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-top: 0.2rem;
-}
-
-.pill-success {
-  border-color: #86efac;
+  color: white;
+  margin-bottom: 0.35rem;
 }
 
 .pill-success .stat-number {
-  color: var(--color-success);
+  color: #34d399;
 }
 
-/* Sección de órdenes recientes */
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .recent-orders-section {
-  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 .section-top-row {
@@ -268,18 +259,21 @@ const getStatusClass = (st) => {
 
 .section-heading {
   font-size: 1.35rem;
+  font-weight: 700;
   color: var(--text-main);
+  margin: 0;
 }
 
 .section-subtext {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
+  margin: 0.25rem 0 0 0;
 }
 
 .view-all-link {
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--color-primary);
-  font-weight: 700;
-  font-size: 0.875rem;
   text-decoration: none;
 }
 
@@ -289,70 +283,67 @@ const getStatusClass = (st) => {
 
 .orders-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-  .orders-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
 }
 
 .order-card {
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  padding: 1.35rem;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-fast);
   cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .order-card:hover {
-  border-color: var(--color-primary-border);
-  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .order-top-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.4rem;
   margin-bottom: 0.75rem;
-  flex-wrap: wrap;
 }
 
 .ot-badge {
   font-family: monospace;
-  font-size: 0.8rem;
-  font-weight: 800;
-  background: #0f172a;
-  color: white;
-  padding: 0.15rem 0.45rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  background: rgba(234, 88, 12, 0.1);
+  padding: 0.15rem 0.5rem;
   border-radius: var(--radius-sm);
 }
 
 .order-equipment {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 0.2rem;
+  color: var(--text-main);
+  margin: 0 0 0.35rem 0;
+  line-height: 1.3;
 }
 
 .order-location {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  font-weight: 600;
-  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
 }
 
 .order-desc {
   font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0 0 1rem 0;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -362,18 +353,54 @@ const getStatusClass = (st) => {
 
 .order-bottom-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  border-top: 1px solid var(--border-subtle);
+  align-items: center;
   padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .priority-indicator {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.priority-indicator.alta { color: var(--color-danger); }
-.priority-indicator.media { color: var(--color-amber); }
-.priority-indicator.baja { color: var(--color-success); }
+.priority-indicator.baja { color: #059669; }
+.priority-indicator.media { color: #d97706; }
+.priority-indicator.alta { color: #dc2626; }
+
+.empty-orders-banner {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-orders-banner p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .orders-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-welcome-card {
+    padding: 1.5rem;
+  }
+  .hero-title {
+    font-size: 1.75rem;
+  }
+}
 </style>

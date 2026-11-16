@@ -2,8 +2,8 @@
   <div class="inventory-view">
     <div class="view-header">
       <div>
-        <h1 class="view-title">Inventario y Equipos Atendidos</h1>
-        <p class="view-subtitle">Supervisión de pañol, insumos de soldadura y periféricos recuperados (Pantalla 5)</p>
+        <h1 class="view-title">Inventario de Pañol</h1>
+        <p class="view-subtitle">Control de stock de repuestos, insumos y equipos atendidos.</p>
       </div>
 
       <!-- Acciones de cabecera -->
@@ -14,11 +14,11 @@
           class="btn btn-primary btn-sm"
         >
           <AppIcon name="plus" :size="14" />
-          <span>Nuevo repuesto / insumo</span>
+          <span>Nuevo Repuesto</span>
         </button>
         <span v-if="!canEditInventory" class="role-notice">
-          <AppIcon name="info" :size="14" />
-          <span>Tu rol actual ({{ currentUser.rol }}) tiene permiso de sólo lectura en el pañol de repuestos.</span>
+          <AppIcon name="lock" :size="13" />
+          <span>Modo sólo lectura ({{ currentRole }})</span>
         </span>
       </div>
     </div>
@@ -30,7 +30,6 @@
         <div class="section-title-row">
           <div class="title-with-badge">
             <h2 class="sub-title">Repuestos e Insumos</h2>
-            <span class="badge badge-mock">DATOS DE PRUEBA</span>
           </div>
           <span class="stock-alerts-count" v-if="lowStockItemsCount > 0">
             <AppIcon name="alert-triangle" :size="13" />
@@ -43,7 +42,7 @@
             v-for="item in inventory" 
             :key="item.id" 
             class="item-card"
-            :class="{ 'item-low-stock': item.stock_actual <= item.stock_minimo }"
+            :class="{ 'item-low-stock': (Number(item.stock_actual) || 0) <= (Number(item.stock_minimo) || 0) }"
           >
             <div class="item-icon-box">
               <AppIcon :name="getItemIcon(item.categoria)" :size="20" color="#ea580c" />
@@ -52,30 +51,30 @@
             <div class="item-info">
               <div class="item-title-line">
                 <h4 class="item-name">{{ item.nombre }}</h4>
-                <span v-if="item.stock_actual <= item.stock_minimo" class="alert-pill">
+                <span v-if="(Number(item.stock_actual) || 0) <= (Number(item.stock_minimo) || 0)" class="alert-pill">
                   Stock Bajo
                 </span>
               </div>
 
               <div class="item-meta">
-                <span><AppIcon name="map-pin" :size="12" /> {{ item.ubicacion }}</span>
-                <span>• Categoría: {{ item.categoria }}</span>
-                <span>• Est.: ${{ item.precio_estimado.toLocaleString() }} c/u</span>
+                <span><AppIcon name="map-pin" :size="12" /> {{ item.ubicacion || 'Taller' }}</span>
+                <span>• Categoría: {{ item.categoria || 'Hardware' }}</span>
+                <span>• Est.: ${{ formatCurrency(item.precio_unitario_estimado ?? item.precio_estimado) }} c/u</span>
               </div>
 
               <div class="stock-progress-bar">
                 <div 
                   class="progress-fill" 
-                  :style="{ width: Math.min(100, (item.stock_actual / (item.stock_minimo * 2)) * 100) + '%' }"
-                  :class="item.stock_actual <= item.stock_minimo ? 'fill-danger' : 'fill-good'"
+                  :style="{ width: Math.min(100, Math.max(0, ((Number(item.stock_actual) || 0) / Math.max(1, (Number(item.stock_minimo) || 1) * 2)) * 100)) + '%' }"
+                  :class="(Number(item.stock_actual) || 0) <= (Number(item.stock_minimo) || 0) ? 'fill-danger' : 'fill-good'"
                 ></div>
               </div>
             </div>
 
             <div class="item-stock-actions">
               <div class="stock-count-display">
-                <span class="current-stock">{{ item.stock_actual }}</span>
-                <span class="min-stock">mín. {{ item.stock_minimo }}</span>
+                <span class="current-stock">{{ item.stock_actual ?? 0 }}</span>
+                <span class="min-stock">mín. {{ item.stock_minimo ?? 0 }}</span>
               </div>
 
               <!-- Controles de stock para técnicos y consejo -->
@@ -83,7 +82,7 @@
                 <button 
                   @click="adjustStock(item, -1)" 
                   class="btn-stock-adj"
-                  :disabled="item.stock_actual <= 0"
+                  :disabled="(Number(item.stock_actual) || 0) <= 0"
                   title="Descontar 1 unidad"
                 >
                   -
@@ -97,6 +96,15 @@
                 </button>
               </div>
             </div>
+          </div>
+
+          <div v-if="!inventory || inventory.length === 0" class="empty-inventory-state">
+            <AppIcon name="package" :size="32" color="#94a3b8" />
+            <p class="empty-text">No hay repuestos registrados en el pañol aún.</p>
+            <button v-if="canEditInventory" @click="showNewItemModal = true" class="btn btn-primary btn-sm">
+              <AppIcon name="plus" :size="14" />
+              <span>Registrar Primer Repuesto</span>
+            </button>
           </div>
         </div>
       </div>
@@ -140,6 +148,11 @@
               <span class="att-comision">{{ order.comision_responsable }}</span>
             </div>
           </div>
+
+          <div v-if="attendedOrders.length === 0" class="attended-empty-state">
+            <AppIcon name="clock" :size="18" color="#64748b" />
+            <span>Sin intervenciones escolares concluidas todavía</span>
+          </div>
         </div>
 
         <!-- Indicador de Rescate Escolar -->
@@ -161,7 +174,9 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3 class="modal-title">Registrar nuevo repuesto o insumo</h3>
-          <button class="close-btn" @click="showNewItemModal = false">✕</button>
+          <button class="close-btn" @click="showNewItemModal = false" aria-label="Cerrar modal">
+            <AppIcon name="x" :size="16" />
+          </button>
         </div>
 
         <form @submit.prevent="handleCreateItem" class="modal-body">
@@ -179,17 +194,16 @@
           <div class="form-row-2">
             <div class="form-group">
               <label class="form-label">Categoría *</label>
-              <select v-model="newItem.categoria" class="form-select">
-                <option value="Hardware">Hardware</option>
-                <option value="Redes">Redes</option>
-                <option value="Insumos">Insumos</option>
-                <option value="Herramientas">Herramientas</option>
-              </select>
+              <AppCombobox 
+                v-model="newItem.categoria" 
+                :options="categoryOptions" 
+                placeholder="Seleccionar categoría..."
+              />
             </div>
 
             <div class="form-group">
-              <label class="form-label">Ubicación en taller</label>
-              <input type="text" v-model="newItem.ubicacion" class="form-input" placeholder="Ej: Gavetero B2" />
+              <label class="form-label">Ubicación en pañol / taller</label>
+              <input type="text" v-model="newItem.ubicacion" class="form-input" placeholder="Ej: Gavetero A1, Estante B3..." />
             </div>
           </div>
 
@@ -235,28 +249,40 @@ import { useData } from '../services/dataService'
 import { useToast } from '../composables/useToast'
 import OrderDetailModal from '../components/OrderDetailModal.vue'
 
-const { currentUser, canEditInventory } = useAuth()
+const { currentUser, userProfile, currentRole, canEditInventory } = useAuth()
 const { inventory, orders, updateInventoryStock, createInventoryItem } = useData()
 const { success, warning, error } = useToast()
 
 const selectedOrder = ref(null)
 const showNewItemModal = ref(false)
 
+const categoryOptions = [
+  { value: 'Hardware', label: 'Hardware', icon: 'laptop', hint: 'Memorias, discos, placas y fuentes' },
+  { value: 'Redes', label: 'Redes', icon: 'wifi', hint: 'Cables, fichas RJ45, switches y adaptadores' },
+  { value: 'Insumos', label: 'Insumos', icon: 'cpu', hint: 'Estaño, pasta térmica, precintos y alcohol' },
+  { value: 'Herramientas', label: 'Herramientas', icon: 'wrench', hint: 'Soldadores, testers, pinzas y destornilladores' }
+]
+
 const newItem = reactive({
   nombre: '',
   categoria: 'Hardware',
-  ubicacion: 'Taller de Hardware',
+  ubicacion: 'Gavetero A1',
   stock_actual: 5,
   stock_minimo: 2,
   precio_estimado: 5000
 })
 
+const formatCurrency = (val) => {
+  const num = Number(val)
+  return isNaN(num) ? '0' : num.toLocaleString('es-AR')
+}
+
 const lowStockItemsCount = computed(() => {
-  return inventory.value.filter(i => i.stock_actual <= i.stock_minimo).length
+  return (inventory.value || []).filter(i => (Number(i?.stock_actual) || 0) <= (Number(i?.stock_minimo) || 0)).length
 })
 
 const attendedOrders = computed(() => {
-  return orders.value.filter(o => ['Probado', 'Entregado'].includes(o.estado))
+  return (orders.value || []).filter(o => o && ['Probado', 'Entregado'].includes(o.estado))
 })
 
 const getItemIcon = (cat) => {
@@ -284,7 +310,7 @@ const adjustStock = async (item, delta) => {
 
 const handleCreateItem = async () => {
   try {
-    await createInventoryItem(newItem, currentUser.value)
+    await createInventoryItem(newItem, userProfile.value || currentUser.value)
     success(`Repuesto ${newItem.nombre} agregado al inventario.`)
     showNewItemModal.value = false
     newItem.nombre = ''
@@ -336,11 +362,13 @@ const getStatusClass = (st) => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  align-items: start;
 }
 
 @media (min-width: 950px) {
   .inventory-dual-grid {
     grid-template-columns: 1.25fr 1fr;
+    align-items: start;
   }
 }
 
@@ -533,6 +561,7 @@ const getStatusClass = (st) => {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  height: fit-content;
 }
 
 .attended-header {
@@ -563,7 +592,22 @@ const getStatusClass = (st) => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  flex: 1;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.attended-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.15rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  color: #94a3b8;
+  font-size: 0.82rem;
+  text-align: center;
 }
 
 .attended-card-item {
@@ -626,11 +670,11 @@ const getStatusClass = (st) => {
 }
 
 .attended-impact-box {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   display: flex;
   justify-content: space-around;
   text-align: center;
@@ -657,5 +701,24 @@ const getStatusClass = (st) => {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.75rem;
+}
+
+.empty-inventory-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  gap: 0.75rem;
+  background: var(--bg-surface-subtle);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-subtle);
+}
+
+.empty-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
 }
 </style>
