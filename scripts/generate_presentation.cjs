@@ -28,7 +28,7 @@ async function createPresentation() {
     borderLight: '334155'
   };
 
-  const assetsDir = path.join(__dirname, 'presentation_assets');
+  const assetsDir = path.join(__dirname, 'assets');
 
   // Helper: Standard slide background & header
   function setupSlideHeader(slide, category, title, subtitle) {
@@ -888,8 +888,10 @@ async function createPresentation() {
     });
   }
 
-  // Save the presentation
-  const outputPath = path.join(__dirname, 'Presentacion_Clinica_Hardware_Gomez_Gonzalo.pptx');
+  // Save the presentation in docs directory
+  const docsDir = path.join(__dirname, '..', 'docs');
+  if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir, { recursive: true });
+  const outputPath = path.join(docsDir, 'Presentacion_Clinica_Hardware_Gomez_Gonzalo.pptx');
   await pptx.writeFile({ fileName: outputPath });
   console.log(`Presentación PowerPoint generada con éxito en: ${outputPath}`);
 }

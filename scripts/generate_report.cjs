@@ -816,8 +816,10 @@ async function generateCompleteDocx() {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  const primaryPath = path.join(__dirname, 'Informe_Seguimiento_Gomez_Gonzalo.docx');
-  const fallbackPath = path.join(__dirname, 'Informe_Seguimiento_Gomez_Gonzalo_Completo.docx');
+  const docsDir = path.join(__dirname, '..', 'docs');
+  if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir, { recursive: true });
+  const primaryPath = path.join(docsDir, 'Informe_Seguimiento_Gomez_Gonzalo.docx');
+  const fallbackPath = path.join(docsDir, 'Informe_Seguimiento_Gomez_Gonzalo_Completo.docx');
 
   try {
     fs.writeFileSync(primaryPath, buffer);
